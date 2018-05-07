@@ -21,15 +21,28 @@ var mongoConnect = function(callback) { MongoClient.connect(process.env.MONGO_UR
 
 
 function sortAndLimitList(list, query) {
-	return list.sort((a, b)=> {
-		var order = (query._order == 'DESC') ? -1 : 1;
-		if (a[query._sort] < b[query._sort])
-			return -order;
-		else if (a[query._sort] > b[query._sort])
-			return order;
-		return 0;
-	})
-	.slice(parseInt(query._start), parseInt(query._end));
+	if (query._sort) {
+		list = list.sort((a, b)=> {
+			var order = (query._order == 'DESC') ? -1 : 1;
+			if (a[query._sort] < b[query._sort])
+				return -order;
+			else if (a[query._sort] > b[query._sort])
+				return order;
+			return 0;
+		});
+	}
+
+	if (query._start) {
+		var start = parseInt(query._start);
+		var end = parseInt(query._end);
+		if ( end < 0 ) {
+			list = list.slice(start);
+		} else {
+			list = list.slice(start, end);
+		}
+	}
+
+	return list;
 }
 
 function addDynamicField(db, resource, list, query, callback) {

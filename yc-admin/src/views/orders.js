@@ -1,8 +1,7 @@
 // in src/orders.js
 import React from 'react';
-import { List, Edit, Create, Datagrid, DateField, ReferenceField, TextField, NumberField} from 'react-admin';
+import { List, Edit, Datagrid, DateField, ReferenceField, TextField, NumberField} from 'react-admin';
 import { SimpleForm, TabbedForm, EditButton, DisabledInput, LongTextInput, ReferenceInput, required, SelectInput, TextInput, DateInput, NumberInput, AutocompleteInput} from 'react-admin';
-import { FormDataConsumer, ArrayInput, SimpleFormIterator } from 'react-admin';
 
 
 import { Field } from 'redux-form';
@@ -71,35 +70,4 @@ export const OrderEdit = (props) => (
 			<LongTextInput source="remarks" />
 		</SimpleForm>
 	</Edit>
-);
-
-
-
-export const OrderCreate = (props) => (
-	<Create {...props}>
-		<SimpleForm>
-			<DateInput source="date" defaultValue={new Date()} />
-			<ReferenceInput source="supplier_id" reference="suppliers" label="supplier" allowEmpty>
-				<AutocompleteInput optionText="name" />
-			</ReferenceInput>
-
-			<FormDataConsumer>
-			 {({formData, ...rest}) => formData.supplier_id && (
-			 	<ArrayInput source="items">
-					<SimpleFormIterator validate={validateOrderItem}>
-						<TextInput source="item"/>
-						<NumberInput source="quantity" defaultValue={1}/>
-						<NumberInput source="size" />
-						<NumberInput source="netWeight" />
-						<NumberInput source="totalCost" />
-					</SimpleFormIterator>
-				</ArrayInput>
-			)}
-			</FormDataConsumer>
-
-			<NumberInput source="discount" defaultValue={0} />
-			<LongTextInput source="remarks" />
-		</SimpleForm>
-
-	</Create>
 );
