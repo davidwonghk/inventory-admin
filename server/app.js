@@ -32,7 +32,7 @@ function sortAndLimitList(list, query) {
 		});
 	}
 
-	if (query._start) {
+	if (query._start && query._start!='NaN') {
 		var start = parseInt(query._start);
 		var end = parseInt(query._end);
 		if ( end < 0 ) {
@@ -114,22 +114,45 @@ resourceRouter.get('/:resource', function(req, res) {
 	async.waterfall([
 		mongoConnect,
 
-		(database, callback) => {
+		(database, callback) => {			//prepare query
 			var db = database.db(DB_NAME);
 
-			var query = req.query.filter
 			if (req.query.q) {
-				query = { name: new RegExp(req.query.q) };
-			} else if(query && query.indexOf('ids') > -1){
-					query = query.replace('ids', '"ids"');
-					query = JSON.parse(query);
-					if (query['ids'] instanceof Array) {
-					//GET_MANY
-					query['id'] = {'$in': query['ids']};
-					delete query['ids'];
-				}
+				return callback(null, db, { name: new RegExp(req.query.q) });
 			}
 
+			if (req.query.supplier) {
+				return db.collection('suppliers').find({'name': new RegExp(req.query.supplier)}, {id:1}).toArray( (err, suppliers)=> {
+					var ids = suppliers.map((s)=> { return s.id});
+					callback(err, db, {'supplier_id': {$in: ids} });
+				});
+			}
+
+			var filter = req.query.filter
+
+			if(filter && filter.indexOf('ids') > -1) {
+				filter = filter.replace('ids', '"ids"');
+				filter = JSON.parse(filter);
+				if (filter['ids'] instanceof Array) {
+					//GET_MANY
+					filter['id'] = {'$in': filter['ids']};
+					delete filter['ids'];
+				}
+				return callback(null, db, filter);
+			}
+
+			var query = Object.keys(req.query).reduce(function (filtered, key) {
+				if (['_start', '_end', '_sort', '_order', 'id_like'].indexOf(key) < 0) {
+					var num = parseInt(req.query[key]);
+					filtered[key] = (num || num==0) ? num : req.query[key];
+				}
+				return filtered;
+			}, {});
+
+			return callback(null, db, query);
+		},
+
+		(db, query, callback) => {
 			var dbq = db.collection(req.params.resource).find(query)
 			dbq.count( (err, count) => {
 				res.header('X-Total-Count', count);
@@ -140,9 +163,9 @@ resourceRouter.get('/:resource', function(req, res) {
 				var sort = {}; sort[q._sort] = (q._order=='DESC'?-1:1);
 				var skip = parseInt(q._start);
 				var limit = parseInt(q._end) - skip;
+				dbq.sort(sort).skip(skip).limit(limit).toArray((err, list)=> {
 				*/
 
-				//dbq.sort(sort).skip(skip).limit(limit).toArray((err, list)=> {
 				dbq.toArray((err, list)=> {
 					callback(err, db, list);
 				});
@@ -201,7 +224,7 @@ resourceRouter.post('/:resource', function(req, res) {
 		},
 
 		(collection, id, callback) => {
-			if (req.params.resource != 'orders') {
+			if (!req.body.items || req.body.items==[]) {
 				req.body.id = id;
 				collection.insertOne(req.body, callback);
 				return;

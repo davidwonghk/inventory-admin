@@ -1,13 +1,20 @@
 // in src/orders.js
 import React from 'react';
-import { List, Edit, Datagrid, DateField, ReferenceField, TextField, NumberField} from 'react-admin';
-import { SimpleForm, TabbedForm, EditButton, DisabledInput, LongTextInput, ReferenceInput, required, SelectInput, TextInput, DateInput, NumberInput, AutocompleteInput} from 'react-admin';
+import { Filter, List, Edit, Datagrid, DateField, ReferenceField, TextField, NumberField} from 'react-admin';
+import { SimpleForm, EditButton, DisabledInput, LongTextInput, ReferenceInput, required, SelectInput, TextInput, DateInput, NumberInput, AutocompleteInput} from 'react-admin';
 
 import { validateOrderItem } from './OrderCreate'
 
 
+const OrderFilter = (props) => (
+    <Filter {...props}>
+        <TextInput label="Search Supplier" source="supplier" alwaysOn />
+    </Filter>
+);
+
+
 export const OrderList = (props) => (
-	<List {...props}>
+	<List {...props} filters={<OrderFilter />} >
 		<Datagrid>
 			<DateField source="date"/>
 			<ReferenceField label="supplier" source="supplier_id" reference="suppliers" validate={required}>
