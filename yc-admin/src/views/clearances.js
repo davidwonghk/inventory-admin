@@ -9,10 +9,10 @@ export const ClearanceList = (props) => (
 	<List {...props}>
 		<Datagrid>
 			<DateField source="date"/>
-			<ReferenceField label="supplier" source="supplier_id" reference="suppliers" validate={required}>
+			<ReferenceField label="supplier" source="supplier_id" reference="suppliers" linkType="show">
 				<TextField source="name"/>
 			</ReferenceField>
-			<NumberField source="paid" />
+			<NumberField source="paid" options={{ style: 'currency', currency: 'HKD' }} />
 			<TextField source="remarks" />
 			<EditButton />
 		</Datagrid>

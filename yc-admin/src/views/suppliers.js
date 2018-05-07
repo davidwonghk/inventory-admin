@@ -2,10 +2,10 @@
 import React from 'react';
 //import { List, Datagrid, TextField } from 'admin-on-rest';
 import { Filter, List, Edit, Create, Datagrid, TextField, NumberField, DateField } from 'react-admin';
-import{ EditButton, required, SimpleForm, TextInput, BooleanInput } from 'react-admin';
+import{ EditButton, ShowButton, required, SimpleForm, TextInput, BooleanInput } from 'react-admin';
 
 
-class ShowButton extends React.Component {
+class MyShowButton extends React.Component {
 	render() {
 		const { push, record, showNotification } = this.props;
 		var target = this.props.target;
@@ -26,12 +26,11 @@ export const SupplierList = (props) => (
     <List {...props} filters={<SupplierFilter />} >
         <Datagrid>
             <TextField source="name" />
-            <NumberField source="owe" />
+            <NumberField source="owe" options={{ style: 'currency', currency: 'HKD' }} style={{ color: 'red' }} />
 						<DateField source="lastOrdered"/>
-						<ShowButton target="orders"/>
 						<DateField source="lastCleared"/>
-						<ShowButton target="clearances"/>
 						<EditButton />
+						<ShowButton />
         </Datagrid>
     </List>
 );

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { Create, SimpleForm, LongTextInput, ReferenceInput, required, TextInput, DateInput, NumberInput, AutocompleteInput} from 'react-admin';
+import { Create, SimpleForm, LongTextInput, ReferenceInput, required, TextInput, DateInput, NumberInput, AutocompleteInput, SelectInput} from 'react-admin';
 import { ArrayInput, SimpleFormIterator, FormDataConsumer } from 'react-admin';
 
 import { Field } from 'redux-form';
@@ -50,7 +50,7 @@ export const validateOrderItem = (item) => {
       errors.size = ['Must be over 0'];
     } else if (item.netWeight < 0) {
       errors.netWeight = ['Must be over 0'];
-    } else if(typeof item.unit_id !== 'undefined' && item.unit_id) {
+    } else if(typeof item.unit_id === 'undefined' || !item.unit_id) {
 			errors.unit_id = ['Must select'];
 		}else if (item.quantity < 0) {
       errors.quantity = ['Must be over 0'];
@@ -67,7 +67,7 @@ export const OrderCreate = (props) => (
 		<SimpleForm>
 			<DateInput source="date" defaultValue={new Date()} />
 			<ReferenceInput source="supplier_id" reference="suppliers" label="supplier" allowEmpty>
-				<AutocompleteInput optionText="name" />
+				<SelectInput optionText="name" />
 			</ReferenceInput>
 
 		 	<ArrayInput source="items">
