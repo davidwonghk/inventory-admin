@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { Create, SimpleForm, TabbedShowLayout, LongTextInput, ReferenceInput, required, TextInput, DateInput, NumberInput, AutocompleteInput} from 'react-admin';
+import { Create, SimpleForm, LongTextInput, ReferenceInput, required, TextInput, DateInput, NumberInput, AutocompleteInput} from 'react-admin';
 import { ArrayInput, SimpleFormIterator, FormDataConsumer } from 'react-admin';
 
 import { Field } from 'redux-form';
@@ -64,7 +64,6 @@ export const validateOrderItem = (item) => {
 
 export const OrderCreate = (props) => (
 	<Create {...props}>
-		<TabbedShowLayout>
 		<SimpleForm>
 			<DateInput source="date" defaultValue={new Date()} />
 			<ReferenceInput source="supplier_id" reference="suppliers" label="supplier" allowEmpty>
@@ -94,7 +93,6 @@ export const OrderCreate = (props) => (
 			<NumberInput source="discount" defaultValue={0} />
 			<LongTextInput source="remarks" />
 		</SimpleForm>
-		</TabbedShowLayout>
 
 	</Create>
 );
