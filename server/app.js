@@ -24,10 +24,12 @@ function sortAndLimitList(list, query) {
 	if (query._sort) {
 		list = list.sort((a, b)=> {
 			var order = (query._order == 'DESC') ? -1 : 1;
-			if (a[query._sort] < b[query._sort])
-				return -order;
-			else if (a[query._sort] > b[query._sort])
-				return order;
+
+			if (!(query._sort in a)) return -order;
+			if (!(query._sort in b)) return order;
+
+			if (a[query._sort] < b[query._sort]) return -order;
+			else if (a[query._sort] > b[query._sort]) return order;
 			return 0;
 		});
 	}
@@ -94,7 +96,53 @@ function addDynamicField(db, resource, list, query, callback) {
 							item['owe'] = (item['id'] in owe) ? owe[item['id']] : 0;
 					});
 					cb(null, list);
-				}
+				},
+
+				(list, cb) => {	//last order
+					db.collection('orders').aggregate([
+						{$group: { _id: "$supplier_id", lastOrdered: { $max: "$date" } }},
+					]).toArray(cb);
+				},
+
+				(data, cb) => {
+					var m = data.reduce((map, obj) => {
+						map[obj._id] = obj.lastOrdered;
+						return map;
+					}, {});
+
+					cb(null, m);
+				},
+
+				(lastOrders, cb) => {
+					list.forEach((item)=> {
+						var id = item['id'];
+						if (id in lastOrders) item['lastOrdered'] = lastOrders[id];
+					});
+					cb(null, list);
+				},
+
+				(list, cb) => {	//last clearance
+					db.collection('clearances').aggregate([
+						{$group: { _id: "$supplier_id", lastCleared: { $max: "$date" } }},
+					]).toArray(cb);
+				},
+
+				(data, cb) => {
+					var m = data.reduce((map, obj) => {
+						map[obj._id] = obj.lastCleared;
+						return map;
+					}, {});
+
+					cb(null, m);
+				},
+
+				(lastCleared, cb) => {
+					list.forEach((item)=> {
+						var id = item['id'];
+						if (id in lastCleared) item['lastCleared'] = lastCleared[id];
+					});
+					cb(null, list);
+				},
 
 			], (err, result) => {
 				callback(err, sortAndLimitList(result, query));

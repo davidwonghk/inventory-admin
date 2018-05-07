@@ -45,7 +45,7 @@ const OrderTitle = ({ record }) => {
 
 export const OrderEdit = (props) => (
 	<Edit title={<OrderTitle />} {...props}>
-		<SimpleForm validate={validateOrderItem}>
+		<SimpleForm validate='validateOrderItem'>
 			<DisabledInput source="id" />
 			<DateInput source="date"  />
 			<ReferenceInput source="supplier_id" reference="suppliers" label="supplier">

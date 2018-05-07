@@ -1,7 +1,7 @@
 // in src/suppliers.js
 import React from 'react';
 //import { List, Datagrid, TextField } from 'admin-on-rest';
-import { Filter, List, Edit, Create, Datagrid, TextField, NumberField,UrlField } from 'react-admin';
+import { Filter, List, Edit, Create, Datagrid, TextField, NumberField, DateField } from 'react-admin';
 import{ EditButton, required, SimpleForm, TextInput, BooleanInput } from 'react-admin';
 
 
@@ -27,7 +27,9 @@ export const SupplierList = (props) => (
         <Datagrid>
             <TextField source="name" />
             <NumberField source="owe" />
+						<DateField source="lastOrdered"/>
 						<ShowButton target="orders"/>
+						<DateField source="lastCleared"/>
 						<ShowButton target="clearances"/>
 						<EditButton />
         </Datagrid>

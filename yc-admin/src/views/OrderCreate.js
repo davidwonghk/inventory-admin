@@ -71,7 +71,7 @@ export const OrderCreate = (props) => (
 			</ReferenceInput>
 
 		 	<ArrayInput source="items">
-				<SimpleFormIterator validate={validateOrderItem}>
+				<SimpleFormIterator validate='validateOrderItem'>
 					<TextInput source="item"/>
 					<NumberInput source="quantity" defaultValue={1}/>
 					<NumberInput source="size" />
