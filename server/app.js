@@ -201,8 +201,26 @@ resourceRouter.post('/:resource', function(req, res) {
 		},
 
 		(collection, id, callback) => {
-			req.body.id = id;
-			collection.insertOne(req.body, callback);
+			if (req.params.resource != 'orders') {
+				req.body.id = id;
+				collection.insertOne(req.body, callback);
+				return;
+			}
+
+			//special handle to multiple items creation
+			var items = JSON.parse(JSON.stringify(req.body.items));
+			delete req.body.items;
+
+			var lastItem = null;
+			async.forEach(items, (item, next)=> {
+				Object.assign(item, req.body);
+				item.id = id++;
+				item.unit_id = parseInt(item.unit_id);
+				lastItem = item;
+				collection.insertOne(item, next);
+			}, (err)=> {
+				callback(err, lastItem);
+			});
 		},
 	], (err, r) => {
 		if (err) throw err;
