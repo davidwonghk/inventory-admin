@@ -4,8 +4,7 @@ import ReactDOM from 'react-dom';
 import { Create, SimpleForm, TabbedForm, LongTextInput, ReferenceInput, required, TextInput, DateInput, NumberInput, AutocompleteInput} from 'react-admin';
 import { ArrayInput, SimpleFormIterator, FormDataConsumer } from 'react-admin';
 
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
-import {SelectField, MenuItem } from 'material-ui';
+import { Field } from 'redux-form';
 
 import { GET_LIST, GET_MANY, } from 'react-admin';
 import dataProvider from '../dataProvider';
@@ -14,6 +13,9 @@ class UnitInput extends React.Component {
 
   constructor(props) {
     super(props);
+		if (props.source) {
+			this.name = props.source.replace('.undefined', '.	unit_id');
+		}
     this.unitData = [];
   }
 
@@ -29,17 +31,35 @@ class UnitInput extends React.Component {
 	}
 
 	render() {
+
 		return (
-			<MuiThemeProvider>
-			<SelectField value={1}>
+			<Field name={this.name} component="select">
+				  <option />
 					{this.unitData.map(u => (
-						<MenuItem value={u.id} key={u.id} primaryText={u.name} />
+						<option key={parseInt(u.id)} value={parseInt(u.id)}>{u.name}</option>
 					))}
-			</SelectField>
-			</MuiThemeProvider>
+			</Field>
 		)
 	}
 }
+
+
+export const validateOrderItem = (item) => {
+    const errors = {};
+    if (item.size < 0) {
+      errors.size = ['Must be over 0'];
+    } else if (item.netWeight < 0) {
+      errors.netWeight = ['Must be over 0'];
+    } else if(typeof item.unit_id !== 'undefined' && item.unit_id) {
+			errors.unit_id = ['Must select'];
+		}else if (item.quantity < 0) {
+      errors.quantity = ['Must be over 0'];
+    } else if (item.totalCost < 0) {
+      errors.totalCost = ['Must be over 0'];
+    }
+    return errors
+};
+
 
 
 export const OrderCreate = (props) => (
@@ -51,20 +71,21 @@ export const OrderCreate = (props) => (
 			</ReferenceInput>
 
 		 	<ArrayInput source="items">
-				<SimpleFormIterator>
+				<SimpleFormIterator validate={validateOrderItem}>
 					<TextInput source="item"/>
 					<NumberInput source="quantity" defaultValue={1}/>
 					<NumberInput source="size" />
 					<NumberInput source="netWeight" />
-					<UnitInput name="unit"/>
+					<UnitInput source="unit_id"/>
 					<NumberInput source="totalCost" />
 				</SimpleFormIterator>
 			</ArrayInput>
 
 			<FormDataConsumer>
 			 {({formData, ...rest}) => {
-				 if (formData.supplier_id)
-				 	formData.items[0].item = 'hello world'
+					if (formData.supplier_id) {
+					 	//formData.items[0].item = 'hello world'
+					}
 				}
 			}
 			</FormDataConsumer>

@@ -3,9 +3,7 @@ import React from 'react';
 import { List, Edit, Datagrid, DateField, ReferenceField, TextField, NumberField} from 'react-admin';
 import { SimpleForm, TabbedForm, EditButton, DisabledInput, LongTextInput, ReferenceInput, required, SelectInput, TextInput, DateInput, NumberInput, AutocompleteInput} from 'react-admin';
 
-
-import { Field } from 'redux-form';
-
+import { validateOrderItem } from './OrderCreate'
 
 
 export const OrderList = (props) => (
@@ -33,22 +31,9 @@ export const OrderList = (props) => (
 
 
 const OrderTitle = ({ record }) => {
-	return <span>Order {record ? `"${record.date}: ${record.items}"` : ''}</span>;
+	return <span>Order</span>;
 };
 
-const validateOrderItem = (values) => {
-    const errors = {};
-    if (values.size < 0) {
-        errors.size = ['Must be over 0'];
-    } else if (values.netWeight < 0) {
-        errors.netWeight = ['Must be over 0'];
-    } else if (values.quantity < 0) {
-        errors.quantity = ['Must be over 0'];
-    } else if (values.totalCost < 0) {
-        errors.totalCost = ['Must be over 0'];
-    }
-    return errors
-};
 
 
 export const OrderEdit = (props) => (
