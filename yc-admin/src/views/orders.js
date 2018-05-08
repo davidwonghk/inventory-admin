@@ -10,7 +10,16 @@ import { OweTitle } from './OweTitle'
 
 const OrderFilter = (props) => (
     <Filter {...props}>
-        <TextInput label="Search Supplier" source="supplier" alwaysOn />
+        <TextInput label="Item Name" source="item" alwaysOn/>
+        <TextInput label="Supplier Name" source="supplier" />
+        <ReferenceInput label="Supplier Id" source="supplier_id"  reference="suppliers" >
+					<SelectInput optionText="name" />
+				</ReferenceInput>
+        <NumberInput label="Discount" source="discount" />
+				<ReferenceInput label="Item Id" source="id" reference="orders">
+					<SelectInput optionText="item"/>
+				</ReferenceInput>
+        <TextInput label="Remarks" source="remarks"/>
     </Filter>
 );
 

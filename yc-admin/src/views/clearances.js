@@ -1,13 +1,24 @@
 // in src/clerances.js
 import React from 'react';
-import { List, Edit, Create, Datagrid, DateField, ReferenceField, TextField, NumberField} from 'react-admin';
+import { Filter, List, Edit, Create, Datagrid, DateField, ReferenceField, TextField, NumberField} from 'react-admin';
 import { EditButton, DisabledInput, LongTextInput, ReferenceInput, required, SelectInput, SimpleForm, TextInput, DateInput, NumberInput } from 'react-admin';
 import { AutocompleteInput } from 'react-admin';
 
 import { OweTitle } from './OweTitle'
 
+
+const ClearanceFilter = (props) => (
+    <Filter {...props}>
+        <TextInput label="Supplier Name" source="supplier" alwaysOn/>
+        <ReferenceInput label="Supplier Id" source="supplier_id"  reference="suppliers" >
+					<SelectInput optionText="name" />
+				</ReferenceInput>
+        <TextInput label="Remarks" source="remarks"/>
+    </Filter>
+);
+
 export const ClearanceList = (props) => (
-	<List title={<OweTitle name="Clearances"/>} {...props}>
+	<List title={<OweTitle name="Clearances"/>} filters={<ClearanceFilter />} {...props}>
 		<Datagrid>
 			<DateField source="date"/>
 			<ReferenceField label="supplier" source="supplier_id" reference="suppliers" linkType="show">

@@ -19,7 +19,7 @@ class MyShowButton extends React.Component {
 
 const SupplierFilter = (props) => (
     <Filter {...props} >
-        <TextInput label="Search" source="q" alwaysOn />
+        <TextInput label="Search by Name" source="q" alwaysOn />
     </Filter>
 );
 
@@ -29,7 +29,7 @@ export const SupplierList = (props) => (
         <Datagrid>
             <TextField source="name" />
 						<DateField source="lastOrdered"/>
-						<DateField source="lastCleared"/>
+						<DateField source="lastPaid"/>
             <NumberField source="owe" options={{ style: 'currency', currency: 'HKD' }} style={{ color: 'red' }} />
 						<EditButton />
 						<ShowButton />

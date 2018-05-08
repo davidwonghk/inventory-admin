@@ -96,8 +96,15 @@ function prepareQuery(state, callback) {
 
 	var query = Object.keys(req.query).reduce((filtered, key) =>{
 		if (['_start', '_end', '_sort', '_order', 'id_like'].indexOf(key) < 0) {
-			var num = parseInt(req.query[key]);
-			filtered[key] = (num || num==0) ? num : req.query[key];
+
+			if (['name', 'remarks', 'item'].indexOf(key) != -1) {
+				//regex on special key
+				filtered[key] = new RegExp(req.query[key]);
+			} else {
+				//handle numberical values
+				var num = parseInt(req.query[key]);
+				filtered[key] = (num || num==0) ? num : req.query[key];
+			}
 		}
 		return filtered;
 	}, {});
@@ -142,59 +149,7 @@ function outputJsonResult(res,statusCode) {
 	}
 }
 
-
-//--------------------------------------------------
-//Restful API by express
-
-//GET_LIST
-
-resourceRouter.get('/owe', function(req, res) {
-	res.header('X-Total-Count', 1);
-
-	const totalOwe = (state, cb) => {
-		const db = state.db;
-
-		async.parallel([
-			(finish) => {
-				db.collection('orders').aggregate([ {$group: { _id:null, cost: { $sum: "$totalCost" } }}, ]).toArray(finish);
-			},
-			(finish) => {
-				db.collection('clearances').aggregate([ {$group: { _id:null, cost: { $sum: "$paid" } }}, ]).toArray(finish);
-			},
-		], (errs, results) => {
-			if (errs) return cb(errs);
-			cb(errs, results[0][0].cost - results[1][0].cost);
-		});
-
-	};
-
-	mongoWaterfall(req, res, [totalOwe], outputJsonResult(res, 200));
-});
-
-resourceRouter.get('/orders', function(req, res) {
-	req.params.resource = 'orders';
-
-	const extendOrders = (state, list, callback) => {
-		const db = state.db;
-
-		async.forEach(list, (item, next)=>{
-			item['unitCost'] = item['totalCost'] / ( item['quantity'] * item['size'] * item['netWeight'] );
-			next();
-		}, (err)=> {
-			callback(err, state, list);
-		});
-	};
-
-	mongoWaterfall(req, res,
-		[prepareQuery, getTotalCountAndList, extendOrders, sortAndLimitList],
-		outputJsonResult(res, 200)
-	);
-});
-
-resourceRouter.get('/suppliers', function(req, res) {
-	req.params.resource = 'suppliers';
-
-	const extendSuppliers = (state, list, callback) => {
+function expandSuppliers(state, list, callback) {
 		const db = state.db;
 
 		async.waterfall([
@@ -261,23 +216,23 @@ resourceRouter.get('/suppliers', function(req, res) {
 
 			(list, cb) => {	//last clearance
 				db.collection('clearances').aggregate([
-					{$group: { _id: "$supplier_id", lastCleared: { $max: "$date" } }},
+					{$group: { _id: "$supplier_id", lastPaid: { $max: "$date" } }},
 				]).toArray(cb);
 			},
 
 			(data, cb) => {
 				var m = data.reduce((map, obj) => {
-					map[obj._id] = obj.lastCleared;
+					map[obj._id] = obj.lastPaid;
 					return map;
 				}, {});
 
 				cb(null, m);
 			},
 
-			(lastCleared, cb) => {
+			(lastPaid, cb) => {
 				list.forEach((item)=> {
 					var id = item['id'];
-					if (id in lastCleared) item['lastCleared'] = lastCleared[id];
+					if (id in lastPaid) item['lastPaid'] = lastPaid[id];
 				});
 				cb(null, list);
 			},
@@ -285,10 +240,61 @@ resourceRouter.get('/suppliers', function(req, res) {
 		], (err, result)=> {
 			callback(err, state, result);
 		});
+	}
+
+//--------------------------------------------------
+//Restful API by express
+
+//GET_LIST
+
+resourceRouter.get('/owe', function(req, res) {
+	res.header('X-Total-Count', 1);
+
+	const totalOwe = (state, cb) => {
+		const db = state.db;
+
+		async.parallel([
+			(finish) => {
+				db.collection('orders').aggregate([ {$group: { _id:null, cost: { $sum: "$totalCost" } }}, ]).toArray(finish);
+			},
+			(finish) => {
+				db.collection('clearances').aggregate([ {$group: { _id:null, cost: { $sum: "$paid" } }}, ]).toArray(finish);
+			},
+		], (errs, results) => {
+			if (errs) return cb(errs);
+			cb(errs, results[0][0].cost - results[1][0].cost);
+		});
+
+	};
+
+	mongoWaterfall(req, res, [totalOwe], outputJsonResult(res, 200));
+});
+
+resourceRouter.get('/orders', function(req, res) {
+	req.params.resource = 'orders';
+
+	const expandOrders = (state, list, callback) => {
+		const db = state.db;
+
+		async.forEach(list, (item, next)=>{
+			item['unitCost'] = item['totalCost'] / ( item['quantity'] * item['size'] * item['netWeight'] );
+			next();
+		}, (err)=> {
+			callback(err, state, list);
+		});
 	};
 
 	mongoWaterfall(req, res,
-		[prepareQuery, getTotalCountAndList, extendSuppliers, sortAndLimitList],
+		[prepareQuery, getTotalCountAndList, expandOrders, sortAndLimitList],
+		outputJsonResult(res, 200)
+	);
+});
+
+resourceRouter.get('/suppliers', function(req, res) {
+	req.params.resource = 'suppliers';
+
+	mongoWaterfall(req, res,
+		[prepareQuery, getTotalCountAndList, expandSuppliers, sortAndLimitList],
 		outputJsonResult(res, 200)
 	);
 });
@@ -301,16 +307,36 @@ resourceRouter.get('/:resource', function(req, res) {
 });
 
 //GET_ONE
-resourceRouter.get('/:resource/:id', function(req, res) {
-	mongoWaterfall(req, res, [
-		(state, callback) => {
-			const db = state.db;
-			const req = state.req;
+resourceRouter.get('/suppliers/:id', function(req, res) {
+	req.params.resource = 'suppliers';
 
-			var id = parseInt(req.params.id);
-			db.collection(req.params.resource).findOne({'id': id}, callback);
-		}
-	], outputJsonResult(res, 200) );
+	const getSupplier = (state, callback) => {
+		const db = state.db;
+		const req = state.req;
+
+		var id = parseInt(req.params.id);
+		db.collection('suppliers').findOne({'id': id}, (err, res)=>{
+			callback(err, state, [res]);
+		});
+	};
+
+	const extractSupplier = (state, list, callback) => {
+		callback(null, list[0]);
+	};
+
+	mongoWaterfall(req, res, [getSupplier, expandSuppliers, extractSupplier], outputJsonResult(res, 200) );
+});
+
+resourceRouter.get('/:resource/:id', function(req, res) {
+	const getOne = (state, callback) => {
+		const db = state.db;
+		const req = state.req;
+
+		var id = parseInt(req.params.id);
+		db.collection(req.params.resource).findOne({'id': id}, callback);
+	};
+
+	mongoWaterfall(req, res, [getOne], outputJsonResult(res, 200) );
 });
 
 

@@ -5,6 +5,7 @@ import { Create, SimpleForm, LongTextInput, ReferenceInput, TextInput, DateInput
 import { ArrayInput, SimpleFormIterator, FormDataConsumer } from 'react-admin';
 
 import { Field } from 'redux-form';
+import { SelectField, MenuItem, MuiThemeProvider } from 'material-ui'
 
 import { GET_LIST } from 'react-admin';
 import dataProvider from '../dataProvider';
@@ -31,7 +32,6 @@ class UnitInput extends React.Component {
 	}
 
 	render() {
-
 		return (
 			<Field name={this.name} component="select">
 				  <option />
@@ -42,6 +42,37 @@ class UnitInput extends React.Component {
 		)
 	}
 }
+
+
+
+class ItemsHistoryHelper extends React.Component {
+	state = {history: []};
+
+	constructor(props) {
+		super(props);
+	}
+
+	change(event){
+		this.setState({value: event.target.value});
+	}
+
+	componentDidMount() {
+			var cb = (r)=> {
+				this.state.history = r
+			}
+
+			dataProvider(GET_LIST, 'orders', {
+		    sort: { field: 'item', order: 'ASC' },
+				pagination: { page: 1, perPage: -1 },
+				filter: { supplier_id: this.props.supplier_id }
+			}).then(cb.bind(this));
+	}
+
+	render() {
+		return (<div/>);
+	}
+}
+
 
 
 export const validateOrderItem = (item) => {
@@ -61,7 +92,6 @@ export const validateOrderItem = (item) => {
 };
 
 
-
 export const OrderCreate = (props) => (
 	<Create {...props}>
 		<SimpleForm>
@@ -70,7 +100,13 @@ export const OrderCreate = (props) => (
 				<SelectInput optionText="name" />
 			</ReferenceInput>
 
-		 	<ArrayInput source="items">
+			<FormDataConsumer>
+			{({formData, ...rest}) => (formData.supplier_id &&
+				<ItemsHistoryHelper supplier_id={formData.supplier_id} callback={ (output)=>{Object.assign(formData, output)} } {...rest}/>
+			)}
+			</FormDataConsumer>
+
+	 		<ArrayInput source="items">
 				<SimpleFormIterator validate='validateOrderItem'>
 					<TextInput source="item"/>
 					<NumberInput source="quantity" defaultValue={1}/>
@@ -80,15 +116,6 @@ export const OrderCreate = (props) => (
 					<NumberInput source="totalCost" />
 				</SimpleFormIterator>
 			</ArrayInput>
-
-			<FormDataConsumer>
-			 {({formData, ...rest}) => {
-					if (formData.supplier_id) {
-					 	//formData.items[0].item = 'hello world'
-					}
-				}
-			}
-			</FormDataConsumer>
 
 			<NumberInput source="discount" defaultValue={0} />
 			<LongTextInput source="remarks" />
