@@ -17,10 +17,28 @@ let MongoClient = require('mongodb').MongoClient;
 //business logic
 
 var resourceRouter = express.Router();
-var mongoConnect = function(callback) { MongoClient.connect(process.env.MONGO_URI, callback) };
+
+function mongoWaterfall(req, res, callbacks, done) {
+	MongoClient.connect(process.env.MONGO_URI, (err, database) => {
+		if (err) throw err;
+
+		var db = database.db(DB_NAME);
+
+		async.waterfall([(cb)=>{cb(null, {req:req, res:res, db:db})}].concat(callbacks), (err, result)=> {
+			if (err) {
+				console.log(err);
+			}
+			done(err, result);
+			if (database) database.close();
+		});
+
+	});
+};
 
 
-function sortAndLimitList(list, query) {
+function sortAndLimitList(state ,list, callback) {
+	const query = state.req.query;
+
 	if (query._sort) {
 		list = list.sort((a, b)=> {
 			var order = (query._order == 'DESC') ? -1 : 1;
@@ -44,304 +62,303 @@ function sortAndLimitList(list, query) {
 		}
 	}
 
-	return list;
+	callback(null, list);
 }
 
-function addDynamicField(db, resource, list, query, callback) {
-	switch(resource) {
-		case "orders":
-			async.forEach(list, (item, next)=>{
-				item['unitCost'] = item['totalCost'] / ( item['quantity'] * item['size'] * item['netWeight'] );
-				next();
-			}, (err)=> {
-				callback(err, sortAndLimitList(list, query));
-			});
-			return;
 
-		case "suppliers":
-			async.waterfall([
-				(cb)=> {
-					db.collection('orders').aggregate([
-						{$group: { _id: "$supplier_id", owe: { $sum: "$totalCost" } }},
-					]).toArray(cb);
-				},
+function prepareQuery(state, callback) {
+	const req = state.req;
+	const db = state.db;
 
-				(data, cb) => {
-					var m = data.reduce((map, obj) => {
-						map[obj._id] = obj.owe;
-						return map;
-					}, {});
-
-					cb(null, m);
-				},
-
-				(map, cb) => {
-					db.collection('clearances').aggregate([
-						{$group: { _id: "$supplier_id", paid: { $sum: "$paid" } }},
-					]).toArray((err, data)=> {
-						data.forEach((item)=> {
-							var id = item['_id'];
-							if (!(id in map)) {
-								map[id] = 0;
-							}
-							map[id] -=item['paid'];
-						});
-
-						cb(err, map);
-					})
-				},
-
-				(owe, cb) => {
-					list.forEach((item)=>{
-							item['owe'] = (item['id'] in owe) ? owe[item['id']] : 0;
-					});
-					cb(null, list);
-				},
-
-				(list, cb) => {	//last order
-					db.collection('orders').aggregate([
-						{$group: { _id: "$supplier_id", lastOrdered: { $max: "$date" } }},
-					]).toArray(cb);
-				},
-
-				(data, cb) => {
-					var m = data.reduce((map, obj) => {
-						map[obj._id] = obj.lastOrdered;
-						return map;
-					}, {});
-
-					cb(null, m);
-				},
-
-				(lastOrders, cb) => {
-					list.forEach((item)=> {
-						var id = item['id'];
-						if (id in lastOrders) item['lastOrdered'] = lastOrders[id];
-					});
-					cb(null, list);
-				},
-
-				(list, cb) => {	//last clearance
-					db.collection('clearances').aggregate([
-						{$group: { _id: "$supplier_id", lastCleared: { $max: "$date" } }},
-					]).toArray(cb);
-				},
-
-				(data, cb) => {
-					var m = data.reduce((map, obj) => {
-						map[obj._id] = obj.lastCleared;
-						return map;
-					}, {});
-
-					cb(null, m);
-				},
-
-				(lastCleared, cb) => {
-					list.forEach((item)=> {
-						var id = item['id'];
-						if (id in lastCleared) item['lastCleared'] = lastCleared[id];
-					});
-					cb(null, list);
-				},
-
-			], (err, result) => {
-				callback(err, sortAndLimitList(result, query));
-			});
-			return;
+	if (req.query.q) {
+		return callback(null, { name: new RegExp(req.query.q) });
 	}
 
-	return callback(null, sortAndLimitList(list, query));
+	if (req.query.supplier) {
+		return db.collection('suppliers').find({'name': new RegExp(req.query.supplier)}, {id:1}).toArray( (err, suppliers)=> {
+			var ids = suppliers.map((s)=> { return s.id});
+			callback(err, db, {'supplier_id': {$in: ids} });
+		});
+	}
 
+	var filter = req.query.filter
+
+	if(filter && filter.indexOf('ids') > -1) {
+		filter = filter.replace('ids', '"ids"');
+		filter = JSON.parse(filter);
+		if (filter['ids'] instanceof Array) {
+			//GET_MANY
+			filter['id'] = {'$in': filter['ids']};
+			delete filter['ids'];
+		}
+		return callback(null, db, filter);
+	}
+
+	var query = Object.keys(req.query).reduce((filtered, key) =>{
+		if (['_start', '_end', '_sort', '_order', 'id_like'].indexOf(key) < 0) {
+			var num = parseInt(req.query[key]);
+			filtered[key] = (num || num==0) ? num : req.query[key];
+		}
+		return filtered;
+	}, {});
+
+	callback(null, state, query);
 }
+
+
+function getTotalCountAndList(state, query, callback) {
+	const req = state.req;
+	const res = state.res;
+	const db = state.db;
+
+	var dbq = db.collection(req.params.resource).find(query)
+	dbq.count( (err, count) => {
+		res.header('X-Total-Count', count);
+		if (err) return callback(err);
+
+		dbq.toArray((err, list)=> {
+			callback(err, state, list);
+		});
+	});
+}
+
+
+function findLatestId(state, callback) {
+	const db = state.db;
+	const req = state.req
+
+	var collection = db.collection(req.params.resource);
+	collection.find().sort({id:-1}).limit(1).toArray((err, result)=> {
+		id = 0;
+		if(result[0]) id = result[0].id;
+		callback(err, collection, id + 1);
+	});
+}
+
+function outputJsonResult(res,statusCode) {
+	return (err, json) => {
+		if (err) throw err;
+		res.status(statusCode).json(json);
+	}
+}
+
 
 //--------------------------------------------------
 //Restful API by express
 
 //GET_LIST
-resourceRouter.get('/:resource', function(req, res) {
-	async.waterfall([
-		mongoConnect,
+resourceRouter.get('/orders', function(req, res) {
+	req.params.resource = 'orders';
 
-		(database, callback) => {			//prepare query
-			var db = database.db(DB_NAME);
+	const extendOrders = (state, list, callback) => {
+		const db = state.db;
 
-			if (req.query.q) {
-				return callback(null, db, { name: new RegExp(req.query.q) });
-			}
+		async.forEach(list, (item, next)=>{
+			item['unitCost'] = item['totalCost'] / ( item['quantity'] * item['size'] * item['netWeight'] );
+			next();
+		}, (err)=> {
+			callback(err, state, list);
+		});
+	};
 
-			if (req.query.supplier) {
-				return db.collection('suppliers').find({'name': new RegExp(req.query.supplier)}, {id:1}).toArray( (err, suppliers)=> {
-					var ids = suppliers.map((s)=> { return s.id});
-					callback(err, db, {'supplier_id': {$in: ids} });
-				});
-			}
-
-			var filter = req.query.filter
-
-			if(filter && filter.indexOf('ids') > -1) {
-				filter = filter.replace('ids', '"ids"');
-				filter = JSON.parse(filter);
-				if (filter['ids'] instanceof Array) {
-					//GET_MANY
-					filter['id'] = {'$in': filter['ids']};
-					delete filter['ids'];
-				}
-				return callback(null, db, filter);
-			}
-
-			var query = Object.keys(req.query).reduce(function (filtered, key) {
-				if (['_start', '_end', '_sort', '_order', 'id_like'].indexOf(key) < 0) {
-					var num = parseInt(req.query[key]);
-					filtered[key] = (num || num==0) ? num : req.query[key];
-				}
-				return filtered;
-			}, {});
-
-			return callback(null, db, query);
-		},
-
-		(db, query, callback) => {
-			var dbq = db.collection(req.params.resource).find(query)
-			dbq.count( (err, count) => {
-				res.header('X-Total-Count', count);
-				if (err) return callback(err);
-
-				/*
-				var q = req.query;
-				var sort = {}; sort[q._sort] = (q._order=='DESC'?-1:1);
-				var skip = parseInt(q._start);
-				var limit = parseInt(q._end) - skip;
-				dbq.sort(sort).skip(skip).limit(limit).toArray((err, list)=> {
-				*/
-
-				dbq.toArray((err, list)=> {
-					callback(err, db, list);
-				});
-			});
-		},
-
-		(db, list, callback) => {
-			addDynamicField(db, req.params.resource, list, req.query, callback);
-		},
-	], (err, result) => {
-		if (err) throw err;
-		res.json(result);
-	});
-
+	mongoWaterfall(req, res,
+		[prepareQuery, getTotalCountAndList, extendOrders, sortAndLimitList],
+		outputJsonResult(res, 200)
+	);
 });
 
+resourceRouter.get('/suppliers', function(req, res) {
+	req.params.resource = 'suppliers';
+
+	const extendSuppliers = (state, list, callback) => {
+		const db = state.db;
+
+		async.waterfall([
+			(cb)=> {
+				db.collection('orders').aggregate([
+					{$group: { _id: "$supplier_id", owe: { $sum: "$totalCost" } }},
+				]).toArray(cb);
+			},
+
+			(data, cb) => {
+				var m = data.reduce((map, obj) => {
+					map[obj._id] = obj.owe;
+					return map;
+				}, {});
+
+				cb(null, m);
+			},
+
+			(map, cb) => {
+				db.collection('clearances').aggregate([
+					{$group: { _id: "$supplier_id", paid: { $sum: "$paid" } }},
+				]).toArray((err, data)=> {
+					data.forEach((item)=> {
+						var id = item['_id'];
+						if (!(id in map)) {
+							map[id] = 0;
+						}
+						map[id] -=item['paid'];
+					});
+
+					cb(err, map);
+				})
+			},
+
+			(owe, cb) => {
+				list.forEach((item)=>{
+						item['owe'] = (item['id'] in owe) ? owe[item['id']] : 0;
+				});
+				cb(null, list);
+			},
+
+			(list, cb) => {	//last order
+				db.collection('orders').aggregate([
+					{$group: { _id: "$supplier_id", lastOrdered: { $max: "$date" } }},
+				]).toArray(cb);
+			},
+
+			(data, cb) => {
+				var m = data.reduce((map, obj) => {
+					map[obj._id] = obj.lastOrdered;
+					return map;
+				}, {});
+
+				cb(null, m);
+			},
+
+			(lastOrders, cb) => {
+				list.forEach((item)=> {
+					var id = item['id'];
+					if (id in lastOrders) item['lastOrdered'] = lastOrders[id];
+				});
+				cb(null, list);
+			},
+
+			(list, cb) => {	//last clearance
+				db.collection('clearances').aggregate([
+					{$group: { _id: "$supplier_id", lastCleared: { $max: "$date" } }},
+				]).toArray(cb);
+			},
+
+			(data, cb) => {
+				var m = data.reduce((map, obj) => {
+					map[obj._id] = obj.lastCleared;
+					return map;
+				}, {});
+
+				cb(null, m);
+			},
+
+			(lastCleared, cb) => {
+				list.forEach((item)=> {
+					var id = item['id'];
+					if (id in lastCleared) item['lastCleared'] = lastCleared[id];
+				});
+				cb(null, list);
+			},
+
+		], (err, result)=> {
+			callback(err, state, result);
+		});
+	};
+
+	mongoWaterfall(req, res,
+		[prepareQuery, getTotalCountAndList, extendSuppliers, sortAndLimitList],
+		outputJsonResult(res, 200)
+	);
+});
+
+resourceRouter.get('/:resource', function(req, res) {
+	mongoWaterfall(req, res,
+		[prepareQuery, getTotalCountAndList, sortAndLimitList],
+		outputJsonResult(res, 200)
+	);
+});
 
 //GET_ONE
 resourceRouter.get('/:resource/:id', function(req, res) {
-	_db = null;
-	async.waterfall([
-		mongoConnect,
+	mongoWaterfall(req, res, [
+		(state, callback) => {
+			const db = state.db;
+			const req = state.req;
 
-		(database, callback) => {
-			_db = database;
-			var db = database.db(DB_NAME);
 			var id = parseInt(req.params.id);
 			db.collection(req.params.resource).findOne({'id': id}, callback);
 		}
-	], (err, r) => {
-		if (err) throw err;
-		res.json(r);
-		if (_db) _db.close();
-	});
+	], outputJsonResult(res, 200) );
 });
-
 
 
 
 //CREATE
-resourceRouter.post('/:resource', function(req, res) {
-	_db = null;
+resourceRouter.post('/orders', function(req, res) {
+	req.params.resource = 'orders';
+	const insertItems = (collection, id, callback) => {
+		//special handle to multiple items creation
+		var items = JSON.parse(JSON.stringify(req.body.items));
+		delete req.body.items;
 
-	async.waterfall([
-		mongoConnect,
+		var lastItem = null;
+		async.forEach(items, (item, next)=> {
+			Object.assign(item, req.body);
+			item.id = id++;
+			item.unit_id = parseInt(item.unit_id);
+			lastItem = item;
+			collection.insertOne(item, next);
+		}, (err)=> {
+			callback(err, lastItem);
+		});
+	};
 
-		(database, callback) => {
-			_db = database;
-			var db = database.db(DB_NAME);
-			var collection = db.collection(req.params.resource);
-			collection.find().sort({id:-1}).limit(1).toArray((err, result)=> {
-				id = 0;
-				if(result[0]) id = result[0].id;
-				callback(err, collection, id + 1);
-			});
-		},
-
-		(collection, id, callback) => {
-			if (!req.body.items || req.body.items==[]) {
-				req.body.id = id;
-				collection.insertOne(req.body, callback);
-				return;
-			}
-
-			//special handle to multiple items creation
-			var items = JSON.parse(JSON.stringify(req.body.items));
-			delete req.body.items;
-
-			var lastItem = null;
-			async.forEach(items, (item, next)=> {
-				Object.assign(item, req.body);
-				item.id = id++;
-				item.unit_id = parseInt(item.unit_id);
-				lastItem = item;
-				collection.insertOne(item, next);
-			}, (err)=> {
-				callback(err, lastItem);
-			});
-		},
-	], (err, r) => {
-		if (err) throw err;
-
-		res.status(201).json(r);
-		if (_db) _db.close();
-	});
+	mongoWaterfall( req, res,
+		[findLatestId, insertItems],
+		outputJsonResult(res, 201)
+	);
 });
+
+
+resourceRouter.post('/:resource', function(req, res) {
+
+	const insertOne = (collection, id, callback) => {
+		if (!req.body.items || req.body.items==[]) {
+			req.body.id = id;
+			collection.insertOne(req.body, callback);
+		}
+	};
+
+	mongoWaterfall( req, res,
+		[findLatestId, insertOne],
+		outputJsonResult(res, 201)
+	);
+});
+
 
 
 //UPDATE
 resourceRouter.put('/:resource/:id', function(req, res) {
-	_db = null;
-
-	async.waterfall([
-		mongoConnect,
-
-		(database, callback) => {
-			_db = database;
-			var db = database.db(DB_NAME);
+	mongoWaterfall(req, res, [
+		(state, callback) => {
+			const db = state.db;
 			var collection = db.collection(req.params.resource);
-			collection.update({id: req.params.id}, {'$set': req.body}, callback);
+			var id = parseInt(req.params.id);
+			delete req.body._id;
+			collection.updateOne({id: id}, {$set: req.body}, callback);
 		},
-	], (err, r) => {
-		if (err) throw err;
-
-		res.status(201).json(r);
-		if (_db) _db.close();
-	});
+	], outputJsonResult(res, 201));
 });
+
 
 //DELETE
 resourceRouter.delete('/:resource/:id', function(req, res) {
-	_db = null;
-
-	async.waterfall([
-		mongoConnect,
-
-		(database, callback) => {
-			_db = database;
-			var db = database.db(DB_NAME);
+	mongoWaterfall(req, res, [
+		(state, callback) => {
+			const db = state.db;
 			var collection = db.collection(req.params.resource);
 			var id = parseInt(req.params.id);
 			collection.deleteOne({id: id}, callback);
 		},
-	], (err, r)=> {
-		if (err) throw err;
-		res.status(204).json(r);
-		if (_db) _db.close();
-	});
+	], outputJsonResult(res, 204) );
 });
 
 
@@ -351,25 +368,20 @@ resourceRouter.delete('/:resource', function(req, res) {
 		return res.status(405).end();
 	}
 
-	_db = null;
-
-	async.waterfall([
-		mongoConnect,
-
-		(database, callback) => {
-			_db = database;
-			var db = database.db(DB_NAME);
+	mongoWaterfall(req, res, [
+		(state, callback) => {
+			const db = state.db;
 			var collection = db.collection(req.params.resource);
 			collection.deleteMany({id: {'$in': req.query.ids}}, callback);
 		},
 	], (err, r)=> {
 		if (err) throw err;
 		res.status(204).json(req.query.ids);
-		if (_db) _db.close();
 	});
 });
 
 
+//--------------------------------------------------
 // this middleware will be executed for every request to the app
 app.use(function (req, res, next) {
 	res.header("Content-Type",'application/json');

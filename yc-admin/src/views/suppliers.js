@@ -26,9 +26,9 @@ export const SupplierList = (props) => (
     <List {...props} filters={<SupplierFilter />} >
         <Datagrid>
             <TextField source="name" />
-            <NumberField source="owe" options={{ style: 'currency', currency: 'HKD' }} style={{ color: 'red' }} />
 						<DateField source="lastOrdered"/>
 						<DateField source="lastCleared"/>
+            <NumberField source="owe" options={{ style: 'currency', currency: 'HKD' }} style={{ color: 'red' }} />
 						<EditButton />
 						<ShowButton />
         </Datagrid>
