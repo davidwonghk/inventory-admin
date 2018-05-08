@@ -359,7 +359,7 @@ resourceRouter.post('/orders', function(req, res) {
 	const insertItems = (collection, id, callback) => {
 		//special handle to multiple items creation
 		if (!req.body.items) {
-			res.status(406).end();
+			return res.status(406).end();
 		}
 		var items = JSON.parse(JSON.stringify(req.body.items));
 		delete req.body.items;
