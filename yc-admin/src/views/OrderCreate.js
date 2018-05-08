@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { Create, SimpleForm, LongTextInput, ReferenceInput, required, TextInput, DateInput, NumberInput, AutocompleteInput, SelectInput} from 'react-admin';
+import { Create, SimpleForm, LongTextInput, ReferenceInput, TextInput, DateInput, NumberInput, AutocompleteInput, SelectInput} from 'react-admin';
 import { ArrayInput, SimpleFormIterator, FormDataConsumer } from 'react-admin';
 
 import { Field } from 'redux-form';
 
-import { GET_LIST, GET_MANY, } from 'react-admin';
+import { GET_LIST } from 'react-admin';
 import dataProvider from '../dataProvider';
 
 class UnitInput extends React.Component {

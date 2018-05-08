@@ -2,8 +2,9 @@
 import React from 'react';
 //import { List, Datagrid, TextField } from 'admin-on-rest';
 import { Filter, List, Edit, Create, Datagrid, TextField, NumberField, DateField } from 'react-admin';
-import{ EditButton, ShowButton, required, SimpleForm, TextInput, BooleanInput } from 'react-admin';
+import { EditButton, ShowButton, required, SimpleForm, TextInput, BooleanInput } from 'react-admin';
 
+import { OweTitle } from './OweTitle'
 
 class MyShowButton extends React.Component {
 	render() {
@@ -22,8 +23,9 @@ const SupplierFilter = (props) => (
     </Filter>
 );
 
+
 export const SupplierList = (props) => (
-    <List {...props} filters={<SupplierFilter />} >
+    <List title={<OweTitle name="Suppliers"/>} {...props} filters={<SupplierFilter />} >
         <Datagrid>
             <TextField source="name" />
 						<DateField source="lastOrdered"/>
@@ -38,12 +40,12 @@ export const SupplierList = (props) => (
 
 
 
-const SupplierTitle = ({ record }) => {
+const EditTitle = ({ record }) => {
 	return <span>Supplier {record ? `"${record.name}"` : ''}</span>;
 };
 
 export const SupplierEdit = (props) => (
-	<Edit title={<SupplierTitle />} {...props}>
+	<Edit title={<EditTitle />} {...props}>
 		<SimpleForm>
 			<TextInput source="name" validate={required} />
 		</SimpleForm>

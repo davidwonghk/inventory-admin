@@ -6,6 +6,7 @@ import { SimpleForm, EditButton, DisabledInput, LongTextInput, ReferenceInput, r
 import { validateOrderItem } from './OrderCreate'
 import { OrderListItem } from './OrderListItem'
 
+import { OweTitle } from './OweTitle'
 
 const OrderFilter = (props) => (
     <Filter {...props}>
@@ -15,7 +16,7 @@ const OrderFilter = (props) => (
 
 
 export const OrderList = (props) => (
-	<List {...props} filters={<OrderFilter />} >
+	<List {...props} title={<OweTitle name="Orders"/>} filters={<OrderFilter />} >
 		<OrderListItem/>
 	</List>
 );

@@ -147,6 +147,30 @@ function outputJsonResult(res,statusCode) {
 //Restful API by express
 
 //GET_LIST
+
+resourceRouter.get('/owe', function(req, res) {
+	res.header('X-Total-Count', 1);
+
+	const totalOwe = (state, cb) => {
+		const db = state.db;
+
+		async.parallel([
+			(finish) => {
+				db.collection('orders').aggregate([ {$group: { _id:null, cost: { $sum: "$totalCost" } }}, ]).toArray(finish);
+			},
+			(finish) => {
+				db.collection('clearances').aggregate([ {$group: { _id:null, cost: { $sum: "$paid" } }}, ]).toArray(finish);
+			},
+		], (errs, results) => {
+			if (errs) return cb(errs);
+			cb(errs, results[0][0].cost - results[1][0].cost);
+		});
+
+	};
+
+	mongoWaterfall(req, res, [totalOwe], outputJsonResult(res, 200));
+});
+
 resourceRouter.get('/orders', function(req, res) {
 	req.params.resource = 'orders';
 

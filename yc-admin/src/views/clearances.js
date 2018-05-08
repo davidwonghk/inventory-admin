@@ -4,9 +4,10 @@ import { List, Edit, Create, Datagrid, DateField, ReferenceField, TextField, Num
 import { EditButton, DisabledInput, LongTextInput, ReferenceInput, required, SelectInput, SimpleForm, TextInput, DateInput, NumberInput } from 'react-admin';
 import { AutocompleteInput } from 'react-admin';
 
+import { OweTitle } from './OweTitle'
 
 export const ClearanceList = (props) => (
-	<List {...props}>
+	<List title={<OweTitle name="Clearances"/>} {...props}>
 		<Datagrid>
 			<DateField source="date"/>
 			<ReferenceField label="supplier" source="supplier_id" reference="suppliers" linkType="show">
