@@ -3,7 +3,7 @@ import {  Datagrid, DateField, ReferenceField, TextField, NumberField, EditButto
 
 export const OrderListItem = (props)=> (
 		<Datagrid {...props}>
-			<DateField source="date"/>
+			<DateField source="date" locales="en-GB"/>
 			<ReferenceField label="supplier" source="supplier_id" reference="suppliers" linkType="show">
 				<TextField source="name"/>
 			</ReferenceField>

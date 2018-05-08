@@ -11,6 +11,7 @@ let express = require('express');
 let bodyParser = require('body-parser');
 let app = express();
 let MongoClient = require('mongodb').MongoClient;
+let moment = require('moment');
 
 
 //--------------------------------------------------
@@ -95,15 +96,26 @@ function prepareQuery(state, callback) {
 	}
 
 	var query = Object.keys(req.query).reduce((filtered, key) =>{
+		const val = req.query[key];
 		if (['_start', '_end', '_sort', '_order', 'id_like'].indexOf(key) < 0) {
 
 			if (['name', 'remarks', 'item'].indexOf(key) != -1) {
 				//regex on special key
-				filtered[key] = new RegExp(req.query[key]);
-			} else {
+				filtered[key] = new RegExp(val);
+			}
+			else if (key == 'date') {
+				//handle date
+				var md = moment(val, "YYYY-MM-DD")
+				var date = md.toDate();
+				var nxDate = md.add(1,'days').toDate();
+				console.log(date);
+				console.log(nxDate);
+				filtered[key] = {$gt: date, $lt: nxDate};
+			}
+			else {
 				//handle numberical values
-				var num = parseInt(req.query[key]);
-				filtered[key] = (num || num==0) ? num : req.query[key];
+				var num = parseInt(val);
+				filtered[key] = (num || num==0) ? num : val;
 			}
 		}
 		return filtered;
@@ -346,6 +358,9 @@ resourceRouter.post('/orders', function(req, res) {
 	req.params.resource = 'orders';
 	const insertItems = (collection, id, callback) => {
 		//special handle to multiple items creation
+		if (!req.body.items) {
+			res.status(406).end();
+		}
 		var items = JSON.parse(JSON.stringify(req.body.items));
 		delete req.body.items;
 
@@ -354,6 +369,8 @@ resourceRouter.post('/orders', function(req, res) {
 			Object.assign(item, req.body);
 			item.id = id++;
 			item.unit_id = parseInt(item.unit_id);
+			item.date = new Date(item.date);
+
 			lastItem = item;
 			collection.insertOne(item, next);
 		}, (err)=> {
@@ -373,6 +390,9 @@ resourceRouter.post('/:resource', function(req, res) {
 	const insertOne = (collection, id, callback) => {
 		if (!req.body.items || req.body.items==[]) {
 			req.body.id = id;
+			if (req.body.date) {
+				req.body.date = new Date(req.body.date);
+			}
 			collection.insertOne(req.body, callback);
 		}
 	};
@@ -393,6 +413,9 @@ resourceRouter.put('/:resource/:id', function(req, res) {
 			var collection = db.collection(req.params.resource);
 			var id = parseInt(req.params.id);
 			delete req.body._id;
+			if (req.body.date) {
+				req.body.date = new Date(req.body.date);
+			}
 			collection.updateOne({id: id}, {$set: req.body}, callback);
 		},
 	], outputJsonResult(res, 201));

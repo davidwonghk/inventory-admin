@@ -46,33 +46,39 @@ class UnitInput extends React.Component {
 
 
 class ItemsHistoryHelper extends React.Component {
-	state = {history: []};
+	state = {history: [], value: 0};
 
 	constructor(props) {
 		super(props);
 	}
 
-	change(event){
-		this.setState({value: event.target.value});
+	onSupplierChange(event){
+		console.log(event);
+		//this.setState({value: event.target.value});
 	}
 
 	componentDidMount() {
-			var cb = (r)=> {
-				this.state.history = r
+			var historyCallback = (r)=> {
+				this.state.history = r.data;
 			}
 
 			dataProvider(GET_LIST, 'orders', {
 		    sort: { field: 'item', order: 'ASC' },
 				pagination: { page: 1, perPage: -1 },
 				filter: { supplier_id: this.props.supplier_id }
-			}).then(cb.bind(this));
+			}).then(historyCallback.bind(this));
 	}
 
 	render() {
-		return (<div/>);
+		return (
+			<div>
+			{ this.state.history.map(h => (
+				<button type="button"> {h.item} </button>
+			))}
+			</div>
+		);
 	}
 }
-
 
 
 export const validateOrderItem = (item) => {
@@ -92,17 +98,23 @@ export const validateOrderItem = (item) => {
 };
 
 
-export const OrderCreate = (props) => (
-	<Create {...props}>
+export class OrderCreate extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+
+	render() {
+		return (
+	<Create {...this.props}>
 		<SimpleForm>
 			<DateInput source="date" defaultValue={new Date()} />
-			<ReferenceInput source="supplier_id" reference="suppliers" label="supplier" allowEmpty>
+			<ReferenceInput source="supplier_id" reference="suppliers" label="supplier" >
 				<SelectInput optionText="name" />
 			</ReferenceInput>
 
 			<FormDataConsumer>
 			{({formData, ...rest}) => (formData.supplier_id &&
-				<ItemsHistoryHelper supplier_id={formData.supplier_id} callback={ (output)=>{Object.assign(formData, output)} } {...rest}/>
+				<ItemsHistoryHelper supplier_id={formData.supplier_id} {...rest}/>
 			)}
 			</FormDataConsumer>
 
@@ -122,4 +134,6 @@ export const OrderCreate = (props) => (
 		</SimpleForm>
 
 	</Create>
-);
+	);
+	}
+}

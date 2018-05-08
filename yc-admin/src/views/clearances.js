@@ -14,13 +14,14 @@ const ClearanceFilter = (props) => (
 					<SelectInput optionText="name" />
 				</ReferenceInput>
         <TextInput label="Remarks" source="remarks"/>
+				<DateInput label="Date" source="date"/>
     </Filter>
 );
 
 export const ClearanceList = (props) => (
 	<List title={<OweTitle name="Clearances"/>} filters={<ClearanceFilter />} {...props}>
 		<Datagrid>
-			<DateField source="date"/>
+			<DateField source="date"  locales="en-GB"/>
 			<ReferenceField label="supplier" source="supplier_id" reference="suppliers" linkType="show">
 				<TextField source="name"/>
 			</ReferenceField>

@@ -20,6 +20,7 @@ const OrderFilter = (props) => (
 					<SelectInput optionText="item"/>
 				</ReferenceInput>
         <TextInput label="Remarks" source="remarks"/>
+				<DateInput label="Date" source="date"/>
     </Filter>
 );
 
