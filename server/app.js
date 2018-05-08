@@ -71,13 +71,13 @@ function prepareQuery(state, callback) {
 	const db = state.db;
 
 	if (req.query.q) {
-		return callback(null, { name: new RegExp(req.query.q) });
+		return callback(null, state, { name: new RegExp(req.query.q) });
 	}
 
 	if (req.query.supplier) {
 		return db.collection('suppliers').find({'name': new RegExp(req.query.supplier)}, {id:1}).toArray( (err, suppliers)=> {
 			var ids = suppliers.map((s)=> { return s.id});
-			callback(err, db, {'supplier_id': {$in: ids} });
+			callback(err, state, {'supplier_id': {$in: ids} });
 		});
 	}
 
@@ -91,7 +91,7 @@ function prepareQuery(state, callback) {
 			filter['id'] = {'$in': filter['ids']};
 			delete filter['ids'];
 		}
-		return callback(null, db, filter);
+		return callback(null, state, filter);
 	}
 
 	var query = Object.keys(req.query).reduce((filtered, key) =>{
