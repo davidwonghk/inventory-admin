@@ -4,7 +4,7 @@ import dataProvider from '../dataProvider';
 import { GET_LIST } from 'react-admin';
 
 import { change, Field } from 'redux-form';
-import { connect, dispatch } from 'react-redux';
+import { connect } from 'react-redux';
 import {ReferenceSelectComponent} from './ReferenceSelect'
 
 
@@ -12,8 +12,6 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 
 	handleChange(event) {
 		super.handleChange(event);
-
-		let {dispatch} = this.props.meta;
 
 		dataProvider(GET_LIST, 'orders', {
 	    sort: { field: 'item', order: 'ASC' },
@@ -23,7 +21,7 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 	}
 
 	historyRecieved(r) {
-		if (!r.data || r.data.length==0) return;
+		if (!r.data || r.data.length===0) return;
 
 		const FORM_NAME = 'record-form';
 		let {dispatch} = this.props.meta;
@@ -39,7 +37,7 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 		//filter out duplicate items
 		var existedItems = []
 		data = data.filter(i=> {
-			if (existedItems.indexOf(i.item) == -1) {
+			if (existedItems.indexOf(i.item) === -1) {
 				existedItems.push(i.item)
 				return true;
 			}
@@ -47,12 +45,15 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 		});
 
 		dispatch(change(FORM_NAME, 'items', data));
-		for(var i=0; i<data.length; ++i) {
-			var d = data[i];
-			keys.forEach(k=> dispatch(change(FORM_NAME, `items[${i}].${k}`, d[k])) );
-		};
+		data.forEach((d, i) => {
+			keys.forEach(k=> dispatch(change(FORM_NAME, `items[${i}].${k}`, d[k])) )
+		});
 		dispatch(change(FORM_NAME, 'discount', r.data[0].discount));
 		dispatch(change(FORM_NAME, 'remarks', r.data[0].remarks));
+	}
+
+	handleSubmit(event) {
+		console.log(event);
 	}
 
 }

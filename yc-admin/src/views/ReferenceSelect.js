@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Field, reduxForm, reducer as formReducer } from 'redux-form';
+import { Field } from 'redux-form';
 
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import AsyncSelect from 'react-select/lib/Async';
@@ -26,7 +26,6 @@ class ReferenceSelectInput extends React.Component {
 	}
 
 	handleChange(event) {
-		console.log(event);
     this.props.input.onChange(event.value);
 	}
 
@@ -40,6 +39,7 @@ class ReferenceSelectInput extends React.Component {
 					autosize
 	        loadOptions={this.loadOptions.bind(this)}
 					onChange={this.handleChange.bind(this)}
+					onSubmit={this.handleSubmit.bind(this)}
 					source={this.props.source}
 				/>
 				</Labeled>
