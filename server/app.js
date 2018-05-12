@@ -356,6 +356,21 @@ resourceRouter.get('/:resource/:id', function(req, res) {
 //CREATE
 resourceRouter.post('/orders', function(req, res) {
 	req.params.resource = 'orders';
+
+	const insertPaidClearance = (supplier_id, paid, lastItem, callback) => {
+		const insertClearance = (collection, id, next) => {
+			collection.insertOne({'id': id, 'supplier_id': supplier_id, 'date':new Date(), 'paid': paid}, next);
+		};
+
+		mongoWaterfall( {params: {resource: 'clearances'}}, {},
+			[findLatestId, insertClearance],
+			(err, result)=> {
+				callback(err, lastItem);
+			}
+		);
+
+	};
+
 	const insertItems = (collection, id, callback) => {
 		//special handle to multiple items creation
 		if (!req.body.items) {
@@ -374,9 +389,17 @@ resourceRouter.post('/orders', function(req, res) {
 			lastItem = item;
 			collection.insertOne(item, next);
 		}, (err)=> {
-			callback(err, lastItem);
+			if (err) return callback(err);
+
+			if (!req.body.isPaid) {
+				return callback(err, lastItem);
+			}
+
+			var paid = items.reduce((p, i)=>(p+i.totalCost) , 0)
+			insertPaidClearance(req.body.supplier_id, paid, lastItem, callback);
 		});
 	};
+
 
 	mongoWaterfall( req, res,
 		[findLatestId, insertItems],

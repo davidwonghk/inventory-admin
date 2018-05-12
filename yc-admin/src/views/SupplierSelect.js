@@ -13,6 +13,8 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 	handleChange(event) {
 		super.handleChange(event);
 
+		let {dispatch} = this.props.meta;
+
 		dataProvider(GET_LIST, 'orders', {
 	    sort: { field: 'item', order: 'ASC' },
 			pagination: { page: 1, perPage: -1 },
@@ -23,6 +25,7 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 	historyRecieved(r) {
 		if (!r.data || r.data.length==0) return;
 
+		const FORM_NAME = 'record-form';
 		let {dispatch} = this.props.meta;
 		const keys = [ 'item', 'quantity', 'size', 'netWeight', 'unit_id', 'totalCost' ];
 
@@ -31,13 +34,25 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 				if (k in old) item[k] = old[k];
 				return item;
 			}, {});
+		}).sort((a, b)=> (b.date - a.date));
+
+		//filter out duplicate items
+		var existedItems = []
+		data = data.filter(i=> {
+			if (existedItems.indexOf(i.item) == -1) {
+				existedItems.push(i.item)
+				return true;
+			}
+			return false;
 		});
 
-		dispatch(change('record-form', 'items', data));
+		dispatch(change(FORM_NAME, 'items', data));
 		for(var i=0; i<data.length; ++i) {
 			var d = data[i];
-			keys.forEach(k=> dispatch(change('record-form', `items[${i}].${k}`, d[k])) );
+			keys.forEach(k=> dispatch(change(FORM_NAME, `items[${i}].${k}`, d[k])) );
 		};
+		dispatch(change(FORM_NAME, 'discount', r.data[0].discount));
+		dispatch(change(FORM_NAME, 'remarks', r.data[0].remarks));
 	}
 
 }

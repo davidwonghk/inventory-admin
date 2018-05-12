@@ -11,29 +11,37 @@ import SupplierSelect from './SupplierSelect'
 import dataProvider from '../dataProvider';
 import { GET_LIST } from 'react-admin';
 
-class ItemsHistoryHelper extends React.Component {
-	state = {history: [], value: 0};
+
+class UnitInput extends React.Component {
+
+  constructor(props) {
+    super(props);
+		if (props.source) {
+			this.name = props.source.replace('.undefined', '.	unit_id');
+		}
+    this.unitData = [];
+  }
 
 	componentDidMount() {
-		var historyCallback = (r)=> {
-			this.state.history = r.data;
-		}
+			var cb = (r)=> {
+				this.unitData = r.data;
+			}
 
-		dataProvider(GET_LIST, 'orders', {
-	    sort: { field: 'item', order: 'ASC' },
-			pagination: { page: 1, perPage: -1 },
-			filter: { supplier_id: this.props.supplier_id }
-		}).then(historyCallback.bind(this));
+			dataProvider(GET_LIST, 'units', {
+		    sort: { field: 'name', order: 'ASC' },
+				pagination: { page: 1, perPage: -1 },
+			}).then(cb.bind(this));
 	}
 
 	render() {
 		return (
-			<div>
-			{ this.state.history.map(h => (
-				<button type="button"> {h.item} </button>
-			))}
-			</div>
-		);
+			<Field name={this.name} component="select">
+				  <option />
+					{this.unitData.map(u => (
+						<option key={parseInt(u.id)} value={parseInt(u.id)}>{u.name}</option>
+					))}
+			</Field>
+		)
 	}
 }
 
@@ -45,19 +53,13 @@ export const OrderCreate = (props) => (
 
 			<SupplierSelect source="supplier_id" reference="suppliers" label="Supplier" />
 
-			<FormDataConsumer>
-			{({formData, ...rest}) => (formData.supplier_id &&
-				<ItemsHistoryHelper supplier_id={formData.supplier_id} {...rest}/>
-			)}
-			</FormDataConsumer>
-
 	 		<ArrayInput source="items">
 				<SimpleFormIterator>
 					<TextInput source="item"/>
 					<NumberInput source="quantity" defaultValue={1}/>
 					<NumberInput source="size" />
 					<NumberInput source="netWeight" />
-					<ReferenceSelect reference="units" label="Unit" source="unit_id" />
+					<UnitInput reference="units" label="Unit" source="unit_id" />
 					<NumberInput source="totalCost" />
 				</SimpleFormIterator>
 			</ArrayInput>
