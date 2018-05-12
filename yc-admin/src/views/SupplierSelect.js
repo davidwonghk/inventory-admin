@@ -12,18 +12,18 @@ const FORM_NAME = 'record-form';
 class SupplierSelectInput extends ReferenceSelectComponent {
 	value = null;
 
-	render() {
+	componentDidMount() {
 		let { dispatch, touched, error } = this.props.meta;
+
 		if (touched && error && this.value) {
 			dispatch(change(FORM_NAME, 'supplier_id', this.value));
 		}
-
-		return super.render()
 	}
 
 	handleChange(event) {
 		super.handleChange(event);
 
+		console.log(event.value);
 		this.value = event.value;
 
 		dataProvider(GET_LIST, 'orders', {

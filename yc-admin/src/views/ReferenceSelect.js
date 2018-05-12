@@ -29,8 +29,6 @@ class ReferenceSelectInput extends React.Component {
 	}
 
 	render() {
-		let { touched, error } = this.props.meta;
-
 		return (
 			<MuiThemeProvider class="ra-input ra-input-items">
 				<Labeled label={"-------"+this.props.label+"--------"}>
@@ -43,7 +41,6 @@ class ReferenceSelectInput extends React.Component {
 					source={this.props.source}
 				/>
 				</Labeled>
-				{touched && error && <span>{error}</span>}
 			</MuiThemeProvider>
 		);
 	}
