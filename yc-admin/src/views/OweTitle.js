@@ -6,10 +6,6 @@ import { GET_LIST } from 'react-admin';
 export class OweTitle extends React.Component{
 	state = {owe:null};
 
-  constructor(props) {
-    super(props);
-	}
-
 	componentDidMount() {
 		//dummy parameters
 		var dummyParams = {
@@ -29,8 +25,8 @@ export class OweTitle extends React.Component{
 		if (this.state.owe) {
 			return (
 				<div>
-					<span> {this.props.name} List</span> &nbsp;
-					<span>owe=<b>${this.state.owe}</b></span>
+					<span> {this.props.name} </span> &nbsp;
+					<span>(owe=<b>${this.state.owe}</b>)</span>
 				</div>
 			);
 		}

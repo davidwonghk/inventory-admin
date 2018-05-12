@@ -1,11 +1,10 @@
 // in src/orders.js
 import React from 'react';
 import { Filter, List, Edit } from 'react-admin';
-import { SimpleForm, EditButton, DisabledInput, LongTextInput, ReferenceInput, required, SelectInput, TextInput, DateInput, NumberInput, AutocompleteInput} from 'react-admin';
+import { SimpleForm, DisabledInput, LongTextInput, ReferenceInput, SelectInput, TextInput, DateInput, NumberInput, AutocompleteInput} from 'react-admin';
 
 import { OrderListItem } from './OrderListItem'
 
-import { OweTitle } from './OweTitle'
 
 export const validateOrderItem = (item) => {
     const errors = {};
@@ -41,7 +40,7 @@ const OrderFilter = (props) => (
 
 
 export const OrderList = (props) => (
-	<List {...props} title={<OweTitle name="Orders"/>} filters={<OrderFilter />} >
+	<List {...props} filters={<OrderFilter />} >
 		<OrderListItem/>
 	</List>
 );

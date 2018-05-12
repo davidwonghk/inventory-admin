@@ -1,5 +1,5 @@
 import React from 'react';
-import {  Datagrid, DateField, ReferenceField, TextField, NumberField, EditButton, ShowButton} from 'react-admin';
+import {  Datagrid, DateField, ReferenceField, TextField, NumberField, EditButton } from 'react-admin';
 
 export const OrderListItem = (props)=> (
 		<Datagrid {...props}>

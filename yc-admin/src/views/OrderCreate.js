@@ -2,10 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import { Create, SimpleForm, LongTextInput, ReferenceInput, TextInput, DateInput, NumberInput, AutocompleteInput, SelectInput, BooleanInput} from 'react-admin';
-import { ArrayInput, SimpleFormIterator, FormDataConsumer } from 'react-admin';
+import { ArrayInput, SimpleFormIterator, FormDataConsumer, } from 'react-admin';
 
 import { Field } from 'redux-form';
 import ReferenceSelect from './ReferenceSelect'
+import SupplierSelect from './SupplierSelect'
 
 import dataProvider from '../dataProvider';
 import { GET_LIST } from 'react-admin';
@@ -13,12 +14,7 @@ import { GET_LIST } from 'react-admin';
 class ItemsHistoryHelper extends React.Component {
 	state = {history: [], value: 0};
 
-	constructor(props) {
-		super(props);
-	}
-
 	componentDidMount() {
-		console.log('componentDidMount');
 		var historyCallback = (r)=> {
 			this.state.history = r.data;
 		}
@@ -42,14 +38,12 @@ class ItemsHistoryHelper extends React.Component {
 }
 
 
-
-
 export const OrderCreate = (props) => (
 	<Create {...props}>
 		<SimpleForm>
 			<DateInput source="date" defaultValue={new Date()} />
 
-			<ReferenceSelect source="supplier_id" reference="suppliers" label="Supplier" />
+			<SupplierSelect source="supplier_id" reference="suppliers" label="Supplier" />
 
 			<FormDataConsumer>
 			{({formData, ...rest}) => (formData.supplier_id &&
@@ -63,7 +57,7 @@ export const OrderCreate = (props) => (
 					<NumberInput source="quantity" defaultValue={1}/>
 					<NumberInput source="size" />
 					<NumberInput source="netWeight" />
-					<ReferenceSelect source="unit_id" reference="units" label="Unit"/>
+					<ReferenceSelect reference="units" label="Unit" source="unit_id" />
 					<NumberInput source="totalCost" />
 				</SimpleFormIterator>
 			</ArrayInput>

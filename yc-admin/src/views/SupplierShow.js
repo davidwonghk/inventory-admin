@@ -1,8 +1,7 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 
-import { Show, SimpleShowLayout, TabbedShowLayout, Tab } from 'react-admin';
-import { List, Datagrid, ReferenceManyField } from 'react-admin';
+import { Show, TabbedShowLayout, Tab } from 'react-admin';
+import { Datagrid, ReferenceManyField } from 'react-admin';
 import { TextField, NumberField, DateField, EditButton } from 'react-admin';
 import { OrderListItem } from './OrderListItem'
 
