@@ -3,10 +3,25 @@ import React from 'react';
 import { Filter, List, Edit } from 'react-admin';
 import { SimpleForm, EditButton, DisabledInput, LongTextInput, ReferenceInput, required, SelectInput, TextInput, DateInput, NumberInput, AutocompleteInput} from 'react-admin';
 
-import { validateOrderItem } from './OrderCreate'
 import { OrderListItem } from './OrderListItem'
 
 import { OweTitle } from './OweTitle'
+
+export const validateOrderItem = (item) => {
+    const errors = {};
+    if (item.size < 0) {
+      errors.size = ['Must be over 0'];
+    } else if (item.netWeight < 0) {
+      errors.netWeight = ['Must be over 0'];
+    } else if(typeof item.unit_id === 'undefined' || !item.unit_id) {
+			errors.unit_id = ['Must select'];
+		}else if (item.quantity < 0) {
+      errors.quantity = ['Must be over 0'];
+    } else if (item.totalCost < 0) {
+      errors.totalCost = ['Must be over 0'];
+    }
+    return errors
+};
 
 const OrderFilter = (props) => (
     <Filter {...props}>
