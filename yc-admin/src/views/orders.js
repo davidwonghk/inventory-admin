@@ -6,19 +6,21 @@ import { SimpleForm, DisabledInput, LongTextInput, ReferenceInput, SelectInput, 
 import { OrderListItem } from './OrderListItem'
 
 
-export const validateOrderItem = (item) => {
+export const validateOrder = (item) => {
     const errors = {};
     if (item.size < 0) {
       errors.size = ['Must be over 0'];
     } else if (item.netWeight < 0) {
       errors.netWeight = ['Must be over 0'];
     } else if(typeof item.unit_id === 'undefined' || !item.unit_id) {
-			errors.unit_id = ['Must select'];
+			errors.unit_id = ['Cannot be null'];
 		}else if (item.quantity < 0) {
       errors.quantity = ['Must be over 0'];
     } else if (item.totalCost < 0) {
       errors.totalCost = ['Must be over 0'];
-    }
+    } else if(typeof item.supplier_id === 'undefined' || !item.supplier_id) {
+			errors.supplier_id = ['Cannot be null'];
+		}
     return errors
 };
 
@@ -54,7 +56,7 @@ const OrderTitle = ({ record }) => {
 
 export const OrderEdit = (props) => (
 	<Edit title={<OrderTitle />} {...props}>
-		<SimpleForm validate={validateOrderItem}>
+		<SimpleForm validate={validateOrder}>
 			<DisabledInput source="id" />
 			<DateInput source="date"  />
 			<ReferenceInput source="supplier_id" reference="suppliers" label="supplier">

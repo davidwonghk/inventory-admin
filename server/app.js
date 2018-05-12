@@ -108,8 +108,6 @@ function prepareQuery(state, callback) {
 				var md = moment(val, "YYYY-MM-DD")
 				var date = md.toDate();
 				var nxDate = md.add(1,'days').toDate();
-				console.log(date);
-				console.log(nxDate);
 				filtered[key] = {$gt: date, $lt: nxDate};
 			}
 			else {

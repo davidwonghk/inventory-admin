@@ -10,7 +10,6 @@ import { GET_LIST, Labeled } from 'react-admin';
 
 
 class ReferenceSelectInput extends React.Component {
-
 	loadOptions(input, callback) {
 		dataProvider(GET_LIST, this.props.reference, {
 	    sort: { field: 'name', order: 'ASC' },
@@ -30,6 +29,8 @@ class ReferenceSelectInput extends React.Component {
 	}
 
 	render() {
+		let { touched, error } = this.props.meta;
+
 		return (
 			<MuiThemeProvider class="ra-input ra-input-items">
 				<Labeled label={"-------"+this.props.label+"--------"}>
@@ -39,10 +40,10 @@ class ReferenceSelectInput extends React.Component {
 					autosize
 	        loadOptions={this.loadOptions.bind(this)}
 					onChange={this.handleChange.bind(this)}
-					onSubmit={this.handleSubmit.bind(this)}
 					source={this.props.source}
 				/>
 				</Labeled>
+				{touched && error && <span>{error}</span>}
 			</MuiThemeProvider>
 		);
 	}

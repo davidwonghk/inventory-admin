@@ -7,11 +7,24 @@ import { change, Field } from 'redux-form';
 import { connect } from 'react-redux';
 import {ReferenceSelectComponent} from './ReferenceSelect'
 
+const FORM_NAME = 'record-form';
 
 class SupplierSelectInput extends ReferenceSelectComponent {
+	value = null;
+
+	render() {
+		let { dispatch, touched, error } = this.props.meta;
+		if (touched && error && this.value) {
+			dispatch(change(FORM_NAME, 'supplier_id', this.value));
+		}
+
+		return super.render()
+	}
 
 	handleChange(event) {
 		super.handleChange(event);
+
+		this.value = event.value;
 
 		dataProvider(GET_LIST, 'orders', {
 	    sort: { field: 'item', order: 'ASC' },
@@ -23,7 +36,6 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 	historyRecieved(r) {
 		if (!r.data || r.data.length===0) return;
 
-		const FORM_NAME = 'record-form';
 		let {dispatch} = this.props.meta;
 		const keys = [ 'item', 'quantity', 'size', 'netWeight', 'unit_id', 'totalCost' ];
 
@@ -50,10 +62,6 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 		});
 		dispatch(change(FORM_NAME, 'discount', r.data[0].discount));
 		dispatch(change(FORM_NAME, 'remarks', r.data[0].remarks));
-	}
-
-	handleSubmit(event) {
-		console.log(event);
 	}
 
 }
