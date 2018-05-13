@@ -1,7 +1,10 @@
 //constants
 require('dotenv').config()
-const DB_NAME = 'yuencheong';
-const PORT = process.env.SERVER_PORT;
+const DB_NAME = process.env.DB_NAME || 'yuencheong';
+const server_port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
+const server_ip_address = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
+const mongodb_connection_string = process.env.OPENSHIFT_MONGODB_DB_URL || 'mongodb://127.0.0.1:27017/';
+
 
 //--------------------------------------------------
 //import libraries
@@ -20,7 +23,7 @@ let moment = require('moment');
 var resourceRouter = express.Router();
 
 function mongoWaterfall(req, res, callbacks, done) {
-	MongoClient.connect(process.env.MONGO_URI, (err, database) => {
+	MongoClient.connect(mongodb_connection_string, (err, database) => {
 		if (err) throw err;
 
 		var db = database.db(DB_NAME);
@@ -495,5 +498,6 @@ app.use('/api/v1', resourceRouter);
 
 //--------------------------------------------------
 //Main
-app.listen(PORT);
-console.log("Listening on port " + PORT);
+server.listen(server_port, server_ip_address, function () {
+	  console.log( "Listening on " + server_ip_address + ", port " + server_port )
+});
