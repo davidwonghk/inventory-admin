@@ -1,4 +1,8 @@
 {
+  "name": "inventory-admin-backend",
+  "version": "0.0.0",
+  "private": true,
+
   "dependencies": {
     "async": "^2.6.0",
     "dotenv": "^5.0.1",
