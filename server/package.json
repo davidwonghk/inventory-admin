@@ -11,8 +11,6 @@
     "mongodb": "^3.0.7"
   },
   "scripts": {
-	"client": "cd ../client && yarn start",
-	"build": "cd ../client && yarn install && yarn run build && cd ../server",
 	"dev": "nodemon ./bin/www",
 	"start": "node ./bin/www"
   },

@@ -10,8 +10,9 @@ let app = express();
 
 
 app.use(bodyParser.json());
+app.use('/', express.static(path.join(__dirname, 'public')))
 app.use('/api/v1', resource);
-app.use('/', express.static(path.join(__dirname, '../client/build')))
+
 
 //--------------------------------------------------
 //Main
