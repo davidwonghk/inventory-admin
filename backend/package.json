@@ -7,6 +7,9 @@
     "mongodb": "^3.0.7"
   },
   "scripts": {
-    "start": "node server.js"
+	"dev": "nodemon server.js"
+  },
+  "devDependencies": {
+    "nodemon": "^1.17.4"
   }
 }
