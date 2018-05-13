@@ -13,8 +13,8 @@
   "scripts": {
 	"client": "cd ../client && yarn start",
 	"build": "cd ../client && yarn install && yarn run build && cd ../server",
-	"server": "nodemon ./bin/www",
-	"start": "nodemon ./bin/www"
+	"dev": "nodemon ./bin/www",
+	"start": "node ./bin/www"
   },
   "devDependencies": {
     "nodemon": "^1.17.4"
