@@ -1,30 +1,36 @@
 import React from 'react';
 
 import dataProvider from '../dataProvider';
-import { GET_LIST } from 'react-admin';
+import { GET_LIST, showNotification as showNotificationAction } from 'react-admin';
 
-import { change, Field } from 'redux-form';
+import { Field, change as changeAction } from 'redux-form';
 import { connect } from 'react-redux';
 import {ReferenceSelectComponent} from './ReferenceSelect'
 
-const FORM_NAME = 'record-form';
+const DEFAULT_ITEM = Object({ 'item':'', 'quantity':1, 'size':0, 'netWeight':0, 'unit_id':1, 'totalCost':0 });
 
 class SupplierSelectInput extends ReferenceSelectComponent {
-	value = null;
+	postLoadOptions() {
+		let {change} = this.props;
+		let {dispatch, form} = this.props.meta;
 
-	componentDidMount() {
-		let { dispatch, touched, error } = this.props.meta;
+		var data = Array();
+		data.push(DEFAULT_ITEM);
+		dispatch(change(form, 'items', data));
+	}
 
-		if (touched && error && this.value) {
-			dispatch(change(FORM_NAME, 'supplier_id', this.value));
+	render() {
+		let {showNotification} = this.props;
+		let {touched, error} = this.props.meta;
+		if (touched && error) {
+			showNotification("Supplier cannot be empty", 'warning');
 		}
+
+		return super.render();
 	}
 
 	handleChange(event) {
 		super.handleChange(event);
-
-		console.log(event.value);
-		this.value = event.value;
 
 		dataProvider(GET_LIST, 'orders', {
 	    sort: { field: 'item', order: 'ASC' },
@@ -36,8 +42,10 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 	historyRecieved(r) {
 		if (!r.data || r.data.length===0) return;
 
-		let {dispatch} = this.props.meta;
-		const keys = [ 'item', 'quantity', 'size', 'netWeight', 'unit_id', 'totalCost' ];
+		let {change} = this.props;
+		let {dispatch, form} = this.props.meta;
+
+		const keys = Object.keys(DEFAULT_ITEM);
 
 		var data = r.data.map(old => {
 			return keys.reduce((item, k) => {
@@ -56,16 +64,19 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 			return false;
 		});
 
-		dispatch(change(FORM_NAME, 'items', data));
+		dispatch(change(form, 'items', data));
 		data.forEach((d, i) => {
-			keys.forEach(k=> dispatch(change(FORM_NAME, `items[${i}].${k}`, d[k])) )
+			keys.forEach(k=> dispatch(change(form, `items[${i}].${k}`, d[k])) )
 		});
-		dispatch(change(FORM_NAME, 'discount', r.data[0].discount));
-		dispatch(change(FORM_NAME, 'remarks', r.data[0].remarks));
+		dispatch(change(form, 'discount', r.data[0].discount));
+		dispatch(change(form, 'remarks', r.data[0].remarks));
 	}
 
 }
 
 const SupplierSelect = (props) => <Field name={props.source} component={SupplierSelectInput} {...props} />;
 
-export default connect(null, { 'change': change })(SupplierSelect);
+export default connect(null, {
+	 'change': changeAction,
+	 'showNotification': showNotificationAction,
+ })(SupplierSelect);

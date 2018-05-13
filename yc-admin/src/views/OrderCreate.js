@@ -3,6 +3,8 @@ import React from 'react';
 import { Create, SimpleForm, LongTextInput, TextInput, DateInput, NumberInput, BooleanInput} from 'react-admin';
 import { ReferenceInput, SelectInput, ArrayInput, SimpleFormIterator } from 'react-admin';
 
+import { Field } from 'redux-form';
+
 import SupplierSelect from './SupplierSelect'
 
 
@@ -13,7 +15,6 @@ const validateOrder = (order) => {
     } else if(typeof order.supplier_id === 'undefined' || !order.supplier_id) {
 			errors.supplier_id = ['Cannot be null'];
     }
-		console.log(errors);
     return errors
 };
 
@@ -28,7 +29,6 @@ const validateOrderItem = (item) => {
     } else if (item.totalCost < 0) {
       errors.totalCost = ['Must be over 0'];
     }
-		console.log(errors);
     return errors
 };
 
@@ -46,7 +46,7 @@ export const OrderCreate = (props) => (
 					<NumberInput source="quantity" defaultValue={1}/>
 					<NumberInput source="size" />
 					<NumberInput source="netWeight" />
-					<ReferenceInput reference="units" label="Unit" source="unit_id">
+					<ReferenceInput reference="units" label="Unit" source="unit_id" defaultValue={1} >
 						<SelectInput optionText="name" />
 					</ReferenceInput>
 					<NumberInput source="totalCost" />

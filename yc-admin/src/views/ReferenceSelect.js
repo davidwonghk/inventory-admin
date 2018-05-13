@@ -20,6 +20,7 @@ class ReferenceSelectInput extends React.Component {
 			if (input !== "") {
 				options = options.filter((i)=>(i.name.includes(input)));
 			}
+			this.postLoadOptions();
 			callback(options);
 		});
 	}
@@ -29,9 +30,11 @@ class ReferenceSelectInput extends React.Component {
 	}
 
 	render() {
+		var color = (this.props.input.value==="") ? 'red' : '';
+
 		return (
 			<MuiThemeProvider class="ra-input ra-input-items">
-				<Labeled label={"-------"+this.props.label+"--------"}>
+				<Labeled label={<font color={color}>{this.props.label}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font>}>
 				<AsyncSelect
 					cacheOptions
 					defaultOptions
