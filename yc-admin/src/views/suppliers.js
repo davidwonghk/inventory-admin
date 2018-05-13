@@ -1,8 +1,8 @@
 // in src/suppliers.js
 import React from 'react';
 //import { List, Datagrid, TextField } from 'admin-on-rest';
-import { Filter, List, Edit, Create, Datagrid, TextField, NumberField, DateField } from 'react-admin';
-import { EditButton, ShowButton, required, SimpleForm, TextInput } from 'react-admin';
+import { Filter, List, Edit, Create, Datagrid, TextField, NumberField, DateField,BooleanField } from 'react-admin';
+import { EditButton, ShowButton, required, SimpleForm, TextInput,BooleanInput } from 'react-admin';
 
 
 
@@ -19,6 +19,7 @@ export const SupplierList = (props) => (
             <TextField source="name" />
 						<DateField source="lastOrdered" locales="en-GB"/>
 						<DateField source="lastPaid" locales="en-GB"/>
+						<BooleanField source="autoPay"/>
             <NumberField source="owe" options={{ style: 'currency', currency: 'HKD' }} style={{ color: 'red' }} />
 						<EditButton />
 						<ShowButton />
@@ -37,6 +38,7 @@ export const SupplierEdit = (props) => (
 	<Edit title={<EditTitle />} {...props}>
 		<SimpleForm>
 			<TextInput source="name" validate={required} />
+			<BooleanInput source="autoPay"/>
 		</SimpleForm>
 	</Edit>
 );
@@ -45,6 +47,7 @@ export const SupplierCreate = (props) => (
 	<Create {...props}>
 		<SimpleForm>
 			<TextInput source="name" validate={required} />
+			<BooleanInput source="autoPay" defaultValue={false}/>
 		</SimpleForm>
 	</Create>
 );

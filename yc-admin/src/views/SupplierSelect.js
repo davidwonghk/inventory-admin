@@ -10,13 +10,14 @@ import {ReferenceSelectComponent} from './ReferenceSelect'
 const DEFAULT_ITEM = Object({ 'item':'', 'quantity':1, 'size':0, 'netWeight':0, 'unit_id':1, 'totalCost':0 });
 
 class SupplierSelectInput extends ReferenceSelectComponent {
-	postLoadOptions() {
+	dispatchChange(field, data) {
 		let {change} = this.props;
 		let {dispatch, form} = this.props.meta;
+		dispatch(change(form, field, data));
+	}
 
-		var data = Array();
-		data.push(DEFAULT_ITEM);
-		dispatch(change(form, 'items', data));
+	postLoadOptions() {
+		this.dispatchChange('items', [DEFAULT_ITEM]);
 	}
 
 	render() {
@@ -31,19 +32,20 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 
 	handleChange(event) {
 		super.handleChange(event);
+		if (!event.value) return;
 
 		dataProvider(GET_LIST, 'orders', {
 	    sort: { field: 'item', order: 'ASC' },
 			pagination: { page: 1, perPage: -1 },
 			filter: { supplier_id: event.value }
 		}).then(this.historyRecieved.bind(this));
+
+		var supplier = this.data.find(e=> (e.id===event.value));
+		this.dispatchChange('isPaid', (supplier.autoPay===true));
 	}
 
 	historyRecieved(r) {
 		if (!r.data || r.data.length===0) return;
-
-		let {change} = this.props;
-		let {dispatch, form} = this.props.meta;
 
 		const keys = Object.keys(DEFAULT_ITEM);
 
@@ -64,12 +66,13 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 			return false;
 		});
 
-		dispatch(change(form, 'items', data));
+		var dispatchChange = this.dispatchChange.bind(this);
+		dispatchChange( 'items', data );
 		data.forEach((d, i) => {
-			keys.forEach(k=> dispatch(change(form, `items[${i}].${k}`, d[k])) )
+			keys.forEach(k=> dispatchChange(`items[${i}].${k}`, d[k]) )
 		});
-		dispatch(change(form, 'discount', r.data[0].discount));
-		dispatch(change(form, 'remarks', r.data[0].remarks));
+		dispatchChange('discount', r.data[0].discount);
+		dispatchChange('remarks', r.data[0].remarks);
 	}
 
 }

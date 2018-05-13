@@ -10,16 +10,21 @@ import { GET_LIST, Labeled } from 'react-admin';
 
 
 class ReferenceSelectInput extends React.Component {
+	data = [];
+
 	loadOptions(input, callback) {
 		dataProvider(GET_LIST, this.props.reference, {
 	    sort: { field: 'name', order: 'ASC' },
 			pagination: { page: 1, perPage: -1 },
 		}).then( (r)=> {
+			this.data = r.data;
+
 			var options = r.data.map(d=>({'value':d.id, 'label':d.name}))
 			options = options.sort((a,b)=>(a.value-b.value));
 			if (input !== "") {
 				options = options.filter((i)=>(i.name.includes(input)));
 			}
+
 			this.postLoadOptions();
 			callback(options);
 		});

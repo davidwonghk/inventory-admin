@@ -3,8 +3,6 @@ import React from 'react';
 import { Create, SimpleForm, LongTextInput, TextInput, DateInput, NumberInput, BooleanInput} from 'react-admin';
 import { ReferenceInput, SelectInput, ArrayInput, SimpleFormIterator } from 'react-admin';
 
-import { Field } from 'redux-form';
-
 import SupplierSelect from './SupplierSelect'
 
 
