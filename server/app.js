@@ -11,7 +11,7 @@ let app = express();
 
 app.use(bodyParser.json());
 app.use('/api/v1', resource);
-app.use('/', express.static(path.join(__dirname, 'client/build')))
+app.use('/', express.static(path.join(__dirname, '../client/build')))
 
 //--------------------------------------------------
 //Main
