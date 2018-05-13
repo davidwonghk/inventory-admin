@@ -1,8 +1,8 @@
 //constants
 require('dotenv').config()
 const DB_NAME = process.env.DB_NAME || 'yuencheong';
-const server_port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
-const server_ip_address = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
+const server_port = process.env.OPENSHIFT_NODEJS_PORT || process.env.SERVER_PORT || 8080;
+const server_ip_address = process.env.OPENSHIFT_NODEJS_IP || process.env.SERVER_IP || '127.0.0.1';
 const mongodb_connection_string = process.env.OPENSHIFT_MONGODB_DB_URL || 'mongodb://127.0.0.1:27017/';
 
 
@@ -498,6 +498,6 @@ app.use('/api/v1', resourceRouter);
 
 //--------------------------------------------------
 //Main
-server.listen(server_port, server_ip_address, function () {
+app.listen(server_port, server_ip_address, function () {
 	  console.log( "Listening on " + server_ip_address + ", port " + server_port )
 });
