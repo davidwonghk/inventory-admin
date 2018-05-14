@@ -8,9 +8,10 @@ let resource = require('./routes/resource');
 // this middleware will be executed for every request to the app
 let app = express();
 
+require('dotenv').config()
 
 app.use(bodyParser.json());
-app.use('/', express.static(path.join(__dirname, 'public')))
+app.use('/', express.static(path.join(__dirname, process.env.STATIC_DIR)))
 app.use('/api/v1', resource);
 
 
