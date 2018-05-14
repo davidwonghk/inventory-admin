@@ -5,7 +5,7 @@ import { List, Edit, Create, Datagrid, TextField, NumberField, EditButton} from 
 import { SimpleForm, TextInput, NumberInput } from 'react-admin';
 
 export const UnitList = (props) => (
-    <List {...props}>
+    <List {...props} sort={{ field: 'id', order: 'ASC' }} >
         <Datagrid>
           <TextField source="name" />
 					<NumberField source="ratio" />

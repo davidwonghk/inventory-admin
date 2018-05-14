@@ -31,7 +31,7 @@ export class OweTitle extends React.Component{
 			);
 		}
 		else {
-			return (<span>{this.props.name} List</span>)
+			return (<span>{this.props.name} </span>)
 		}
 	}
 };

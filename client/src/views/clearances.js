@@ -18,7 +18,7 @@ const ClearanceFilter = (props) => (
 );
 
 export const ClearanceList = (props) => (
-	<List filters={<ClearanceFilter />} {...props}>
+	<List filters={<ClearanceFilter />} sort={{ field: 'date', order: 'DESC' }}  {...props}>
 		<Datagrid>
 			<DateField source="date"  locales="en-GB"/>
 			<ReferenceField label="supplier" source="supplier_id" reference="suppliers" linkType="show">

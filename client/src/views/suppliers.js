@@ -14,7 +14,7 @@ const SupplierFilter = (props) => (
 
 
 export const SupplierList = (props) => (
-    <List {...props} filters={<SupplierFilter />} >
+    <List {...props} sort={{ field: 'id', order: 'ASC' }}  filters={<SupplierFilter />} >
         <Datagrid>
             <TextField source="name" />
 						<DateField source="lastOrdered" locales="en-GB"/>

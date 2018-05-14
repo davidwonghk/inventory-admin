@@ -39,18 +39,18 @@ function mongoWaterfall(req, res, callbacks, done) {
 function sortAndLimitList(state ,list, callback) {
 	const query = state.req.query;
 
-	if (query._sort) {
-		list = list.sort((a, b)=> {
-			var order = (query._order == 'DESC') ? -1 : 1;
+	if (!query._sort) query._sort = 'id';
 
-			if (!(query._sort in a)) return -order;
-			if (!(query._sort in b)) return order;
+	list = list.sort((a, b)=> {
+		var order = (query._order == 'DESC') ? -1 : 1;
 
-			if (a[query._sort] < b[query._sort]) return -order;
-			else if (a[query._sort] > b[query._sort]) return order;
-			return 0;
-		});
-	}
+		if (!(query._sort in a)) return -order;
+		if (!(query._sort in b)) return order;
+
+		if (a[query._sort] < b[query._sort]) return -order;
+		else if (a[query._sort] > b[query._sort]) return order;
+		return 0;
+	});
 
 	if (query._start && query._start!='NaN') {
 		var start = parseInt(query._start);

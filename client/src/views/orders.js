@@ -42,7 +42,7 @@ const OrderFilter = (props) => (
 
 
 export const OrderList = (props) => (
-	<List {...props} filters={<OrderFilter />} >
+	<List {...props} sort={{ field: 'date', order: 'DESC' }} filters={<OrderFilter />} >
 		<OrderListItem/>
 	</List>
 );
