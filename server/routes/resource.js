@@ -271,7 +271,11 @@ resourceRouter.get('/owe', function(req, res) {
 			},
 		], (errs, results) => {
 			if (errs) return cb(errs);
-			cb(errs, results[0][0].cost - results[1][0].cost);
+			try {
+				cb(errs, results[0][0].cost - results[1][0].cost);
+			} catch(e) {
+				cb(errs, 0);
+			}
 		});
 
 	};
