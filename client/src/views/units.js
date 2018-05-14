@@ -2,7 +2,7 @@
 import React from 'react';
 //import { List, Datagrid, TextField } from 'admin-on-rest';
 import { List, Edit, Create, Datagrid, TextField, NumberField, EditButton} from 'react-admin';
-import { required, SimpleForm, TextInput, NumberInput } from 'react-admin';
+import { SimpleForm, TextInput, NumberInput } from 'react-admin';
 
 export const UnitList = (props) => (
     <List {...props}>
@@ -23,8 +23,8 @@ const UnitTitle = ({ record }) => {
 export const UnitEdit = (props) => (
 	<Edit title={<UnitTitle />} {...props}>
 		<SimpleForm>
-			<TextInput source="name" validate={required} />
-			<NumberInput source="ratio" validate={required} />
+			<TextInput source="name" />
+			<NumberInput source="ratio" />
 		</SimpleForm>
 	</Edit>
 );

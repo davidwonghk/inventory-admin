@@ -2,7 +2,7 @@
 import React from 'react';
 //import { List, Datagrid, TextField } from 'admin-on-rest';
 import { Filter, List, Edit, Create, Datagrid, TextField, NumberField, DateField,BooleanField } from 'react-admin';
-import { EditButton, ShowButton, required, SimpleForm, TextInput,BooleanInput } from 'react-admin';
+import { EditButton, ShowButton, SimpleForm, TextInput,BooleanInput } from 'react-admin';
 
 
 
@@ -37,7 +37,7 @@ const EditTitle = ({ record }) => {
 export const SupplierEdit = (props) => (
 	<Edit title={<EditTitle />} {...props}>
 		<SimpleForm>
-			<TextInput source="name" validate={required} />
+			<TextInput source="name" />
 			<BooleanInput source="autoPay"/>
 		</SimpleForm>
 	</Edit>
@@ -46,7 +46,7 @@ export const SupplierEdit = (props) => (
 export const SupplierCreate = (props) => (
 	<Create {...props}>
 		<SimpleForm>
-			<TextInput source="name" validate={required} />
+			<TextInput source="name"  />
 			<BooleanInput source="autoPay" defaultValue={false}/>
 		</SimpleForm>
 	</Create>
