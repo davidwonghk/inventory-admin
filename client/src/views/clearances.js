@@ -20,7 +20,7 @@ const ClearanceFilter = (props) => (
 export const ClearanceList = (props) => (
 	<List filters={<ClearanceFilter />} sort={{ field: 'date', order: 'DESC' }}  {...props}>
 		<Datagrid>
-			<DateField source="date"  locales="en-GB"/>
+			<DateField source="date" locales="en-GB"/>
 			<ReferenceField label="supplier" source="supplier_id" reference="suppliers" linkType="show">
 				<TextField source="name"/>
 			</ReferenceField>
@@ -40,7 +40,7 @@ export const ClearanceEdit = (props) => (
 	<Edit title={<ClearanceTitle />} {...props}>
 		<SimpleForm>
 			<DisabledInput source="id" />
-			<DateInput source="date" />
+			<DateInput source="date" locales="en-GB"/>
 			<ReferenceInput source="supplier_id" reference="suppliers" label="supplier">
 				<AutocompleteInput optionText="name" />
 			</ReferenceInput>
@@ -53,7 +53,7 @@ export const ClearanceEdit = (props) => (
 export const ClearanceCreate = (props) => (
 	<Create {...props}>
 		<SimpleForm>
-			<DateInput source="date" defaultValue={new Date()} />
+			<DateInput source="date" locales="en-GB" defaultValue={new Date()} />
 			<ReferenceInput source="supplier_id" reference="suppliers" label="supplier" allowEmpty>
 				<AutocompleteInput optionText="name" />
 			</ReferenceInput>

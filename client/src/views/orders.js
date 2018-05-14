@@ -36,7 +36,7 @@ const OrderFilter = (props) => (
 					<SelectInput optionText="item"/>
 				</ReferenceInput>
         <TextInput label="Remarks" source="remarks"/>
-				<DateInput label="Date" source="date"/>
+				<DateInput label="Date" locales="en-GB" source="date"/>
     </Filter>
 );
 
@@ -58,7 +58,7 @@ export const OrderEdit = (props) => (
 	<Edit title={<OrderTitle />} {...props}>
 		<SimpleForm validate={validateOrder}>
 			<DisabledInput source="id" />
-			<DateInput source="date"  />
+			<DateInput locales="en-GB" source="date"  />
 			<ReferenceInput source="supplier_id" reference="suppliers" label="supplier">
 				<AutocompleteInput optionText="name" />
 			</ReferenceInput>
