@@ -35,7 +35,7 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 		if (!event.value) return;
 
 		dataProvider(GET_LIST, 'orders', {
-	    sort: { field: 'item', order: 'ASC' },
+	    sort: { field: 'date', order: 'DESC' },
 			pagination: { page: 1, perPage: -1 },
 			filter: { supplier_id: event.value }
 		}).then(this.historyRecieved.bind(this));
@@ -54,7 +54,7 @@ class SupplierSelectInput extends ReferenceSelectComponent {
 				if (k in old) item[k] = old[k];
 				return item;
 			}, {});
-		}).sort((a, b)=> (b.date - a.date));
+		});
 
 		//filter out duplicate items
 		var existedItems = []

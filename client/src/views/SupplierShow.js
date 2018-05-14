@@ -11,8 +11,8 @@ export const SupplierShow = (props) => (
 				<Tab label="summary">
 	        <TextField source="name" />
 	        <NumberField source="owe" options={{ style: 'currency', currency: 'HKD' }} style={{ color: 'red' }} />
-					<DateField source="lastOrdered"/>
-					<DateField source="lastPaid"/>
+					<DateField source="lastOrdered" locales="en-GB"/>
+					<DateField source="lastPaid" locales="en-GB"/>
 				</Tab>
 
 				<Tab label="Orders">
@@ -24,7 +24,7 @@ export const SupplierShow = (props) => (
 				<Tab label="Clearances">
           <ReferenceManyField reference="clearances" target="supplier_id" addLabel={false}>
 					<Datagrid>
-						<DateField source="date"/>
+						<DateField source="date" locales="en-GB"/>
 						<NumberField source="paid" options={{ style: 'currency', currency: 'HKD' }} />
 						<TextField source="remarks" />
 						<EditButton />
