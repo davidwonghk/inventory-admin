@@ -17,6 +17,6 @@ $ yarn start
 2. open the front page.
 
 Screenshoot:
-![order list](https://raw.githubusercontent.com/davidwonghk/inventory-admin/branch/master/screenshot/1.png)
-![supplier list](https://raw.githubusercontent.com/davidwonghk/inventory-admin/branch/master/screenshot/2.png)
-![supplier show](https://raw.githubusercontent.com/davidwonghk/inventory-admin/branch/master/screenshot/3.png)
+![order list](https://github.com/davidwonghk/inventory-admin/blob/master/screenshot/1.png?raw=true)
+![supplier list](https://github.com/davidwonghk/inventory-admin/blob/master/screenshot/2.png?raw=true)
+![supplier show](https://github.com/davidwonghk/inventory-admin/blob/master/screenshot/3.png?raw=true)
